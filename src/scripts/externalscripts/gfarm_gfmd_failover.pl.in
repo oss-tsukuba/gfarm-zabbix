@@ -476,13 +476,21 @@ sub gfmd_is_listening {
     my ($conf, $id) = @_;
 
     log_debug('begin: gfmd=%s', $id);
+    my $is_listening = 0;
     my $address = get_configuration($conf, $id, 'gfmd_listen_address');
     my $port = get_configuration($conf, $id, 'gfmd_listen_port');
+
     my $filter = sub { return $_[0] =~ /$address:$port/; };
     my $lines = read_output_from_ssh_sudo($conf, $id, $filter,
 					  'netstat', '-nlt');
+    if (!defined($lines)) {
+	if ($address eq '0.0.0.0') {
+	    $address = '*';
+	    $filter = sub { return $_[0] =~ /\*:$port/; };
+	}
+	$lines = read_output_from_ssh_sudo($conf, $id, $filter, 'ss', '-nlt');
+    }
 
-    my $is_listening = 0;
     if (defined($lines)) {
 	for (my $i = 0; $i < @$lines; $i++) {
 	    $lines->[$i] =~ s/^\s+//;
