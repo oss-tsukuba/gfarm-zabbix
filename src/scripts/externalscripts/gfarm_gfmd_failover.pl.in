@@ -128,7 +128,9 @@ sub log_debug {
 sub log_notice {
     my $message = shift;
 
-    printf(STDERR "%s: notice: $message\n", PROGRAM, @_) if ($log_to_stderr);
+    if ($log_to_stderr && $verbose) {
+	printf(STDERR "%s: notice: $message\n", PROGRAM, @_);
+    }
     syslog(LOG_NOTICE, $message, @_) if ($log_to_syslog);
 }
 
@@ -219,6 +221,17 @@ sub section_keys {
     }
 
     return @result;
+}
+
+#
+# Get a gfmd label "ID (HOST:PORT)", used for log messages.
+#
+sub get_gfmd_label {
+    my ($conf, $id) = @_;
+
+    return sprintf("%s (%s:%s)", $id, 
+		   get_configuration($conf, $id, 'host'),
+		   get_configuration($conf, $id, 'gfmd_listen_port'));
 }
 
 #
@@ -495,34 +508,27 @@ sub get_gfmds_status {
 
     my $gfmds = {};
     foreach my $id (section_keys($conf)) {
-	if ($verbose) {
-	    printf("try to get the current status of gfmd on %s\n", $id);
-	}
 	add_gfmd_entry($gfmds, $id);
 	my $pid = get_gfmd_pid($conf, $id);
 	$gfmds->{$id}->{'is_running'} = defined($pid);
-	log_debug('set gfmd server "%s" is_running=%d',
-		  $id, $gfmds->{$id}->{'is_running'});
-
 	if ($gfmds->{$id}->{'is_running'}) {
 	    $gfmds->{$id}->{'pid'} = $pid;
 	    $gfmds->{$id}->{'is_listening'} = gfmd_is_listening($conf, $id);
 	}
-	log_debug('set gfmd server "%s" is_listening=%d',
-		  $id, $gfmds->{$id}->{'is_listening'});
-	log_debug('set gfmd server "%s" pid=%d',
-		  $id, $gfmds->{$id}->{'pid'});
+	log_notice('get status: gfmd=%s, pid=%d, is_listening=%s',
+		   get_gfmd_label($conf, $id), $gfmds->{$id}->{'pid'},
+		   $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
     }
 
-    if (!master_gfmd_is_running($gfmds)) {
+    if (master_gfmd_is_running($gfmds)) {
+	log_notice("master gfmd is running");
+    } else {
+	log_notice("master gfmd is not running");
 	foreach my $id (keys(%$gfmds)) {
-	    next if (!$gfmds->{$id}->{'is_running'});
-	    if ($verbose) {
-		printf("try to get the max seqno of gfmd on %s\n", $id);
-	    }
 	    $gfmds->{$id}->{'max_seqno'} = get_gfmd_max_seqno($conf, $id);
-	    log_debug('set gfmd server "%s" max_seqno=%d',
-		      $id, $gfmds->{$id}->{'max_seqno'});
+	    log_notice('get max_seqno: gfmd=%s, max_seqno=%d',
+		       get_gfmd_label($conf, $id),
+		       $gfmds->{$id}->{'max_seqno'});
 	}
     }
 
@@ -535,28 +541,37 @@ sub get_gfmds_status {
 # Determine which gfmd server should become a master.
 #
 sub determine_new_master_gfmd {
-    my ($gfmds) = @_;
+    my ($conf, $gfmds) = @_;
 
     log_debug('begin');
+    my $latest_seqno = 1;
     my $new_master_id;
-    my $new_master_max_seqno = -1;
     my $new_master_index = int($gfmds) + 1;
 
     if (!master_gfmd_is_running($gfmds)) {
 	foreach my $id (keys(%$gfmds)) {
+	    if ($gfmds->{$id}->{'max_seqno'} > $latest_seqno) {
+		$latest_seqno = $gfmds->{$id}->{'max_seqno'};
+	    }
+	}
+
+	foreach my $id (keys(%$gfmds)) {
 	    next if (!$gfmds->{$id}->{'is_running'});
-	    if ($gfmds->{$id}->{'max_seqno'} > $new_master_max_seqno ||
-		($gfmds->{$id}->{'max_seqno'} == $new_master_max_seqno &&
-		 $gfmds->{$id}->{'index'} <  $new_master_index)) {
+	    if ($gfmds->{$id}->{'max_seqno'} == $latest_seqno &&
+		$gfmds->{$id}->{'index'} < $new_master_index) {
 		$new_master_id = $id;
 		$new_master_index = $gfmds->{$id}->{'index'};
-		$new_master_max_seqno = $gfmds->{$id}->{'max_seqno'};
 	    }
 	}
     }
 
-    log_debug('end: new_master=%s',
-	      defined($new_master_id) ? $new_master_id : 'undef');
+    if (defined($new_master_id)) {
+	log_notice('choose new master gfmd: gfmd=%s',
+		   get_gfmd_label($conf, $new_master_id));
+    } else {
+	log_notice('no suitable slave for new master gfmd');
+    }
+    log_debug('end');
     return $new_master_id;
 }
 
@@ -634,22 +649,18 @@ sub print_all_gfmsds_status {
 
     log_debug('begin');
     $master_gfmd_is_running = master_gfmd_is_running($gfmds);
-    printf("%-3s  %-6s  %-20s  ID\n",
+    printf("%-3s  %-6s  %-20s  HOST\n",
 	   'RUN', 'LISTEN', 'MAX_SEQNO', 'ID');
 
     foreach my $id (section_keys($conf)) {
-	if ($gfmds->{$id}->{'is_running'}) {
-	    printf('%-3s  ', 'yes');
-	    printf('%-6s  ', $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
-	} else {
-	    printf('%-3s  %-6s  ', '-', '-');
-	}
-	if ($master_gfmd_is_running || !$gfmds->{$id}->{'is_running'}) {
-	    printf('%20s  ', '-');
-	} else {
+	printf('%-3s  ', $gfmds->{$id}->{'is_running'}   ? 'yes' : '-');
+	printf('%-6s  ', $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
+	if ($gfmds->{$id}->{'max_seqno'} > 0) {
 	    printf('%20d  ', $gfmds->{$id}->{'max_seqno'});
+	} else {
+	    printf('%20s  ', '-');
 	}
-	printf("%-s\n", $id);
+	printf("%-s\n", get_gfmd_label($conf, $id));
     }
 
     print("\n");
@@ -684,7 +695,7 @@ sub parse_command_arguments {
     }
     $debug   = 1 if (defined($options{'d'}));
     $dry_run = 1 if (defined($options{'t'}));
-    $verbose = 1 if (defined($options{'v'}) || $dry_run);
+    $verbose = 1 if (defined($options{'v'}) || $debug);
     $configuration_file = $options{'f'} if (defined($options{'f'}));
     log_debug('set configuration file: file=%s', $configuration_file);
 
@@ -697,25 +708,22 @@ sub parse_command_arguments {
 parse_command_arguments();
 my $conf = read_configuration_file($configuration_file);
 log_initialize($conf);
+log_notice('start');
 my $lock_fh = lock_file($conf);
 
 my $gfmds = get_gfmds_status($conf);
-print_all_gfmsds_status($conf, $gfmds) if ($verbose);
-if (master_gfmd_is_running($gfmds)) {
-    log_notice('master gfmd is running');
-    exit(0);
-}
-my $new_master_id = determine_new_master_gfmd($gfmds);
+print_all_gfmsds_status($conf, $gfmds) if ($verbose || $dry_run);
+exit(0) if (master_gfmd_is_running($gfmds));
+my $new_master_id = determine_new_master_gfmd($conf, $gfmds);
 log_error('no master gfmd candidate') if (!defined($new_master_id));
 if ($dry_run) {
-    printf("suitable candidate for master gfmd is %s (%s:%s)\n",
-	   $new_master_id,
-	   get_configuration($conf, $new_master_id, 'host'),
-	   get_configuration($conf, $new_master_id, 'gfmd_listen_port'));
+    printf("suitable candidate for master gfmd is %s\n",
+	   get_gfmd_label($conf, $new_master_id));
 } else {
     failover_gfmd($conf, $gfmds, $new_master_id);
 }
 
+log_notice('end');
 log_finalize();
 unlock_file($lock_fh);
 exit(0);
