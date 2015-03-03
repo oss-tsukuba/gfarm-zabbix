@@ -455,7 +455,7 @@ sub get_gfmd_max_seqno {
     my $lines = read_output_from_ssh_sudo($conf, $id, undef,
 					  $gfjournal, '-m', $journal_file);
 
-    my $max_seqno;
+    my $max_seqno = 0;
     if (!defined($lines) || @$lines == 0) {
 	log_debug('failed to get a largest journal sequence number');
     } elsif ($lines->[0] !~ /^(0|[1-9][0-9]*)$/) {
