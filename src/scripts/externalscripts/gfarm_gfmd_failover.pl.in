@@ -182,7 +182,7 @@ sub read_configuration_file {
     my $id = $global_id;
     my $index = 1;
     while (my $line = <$fh>) {
-	$line =~ s/\s+//;
+	$line =~ s/^\s+//;
 	next if ($line =~ /^$/ || $line =~ /^\#/);
 	if ($line =~ /^\[(.*)\]$/) {
 	    $id = $1;
