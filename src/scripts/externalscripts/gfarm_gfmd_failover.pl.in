@@ -307,11 +307,11 @@ sub read_output_from_ssh {
     my $lines = [];
 
     log_debug('begin: gfmd=%s, command="%s"', $id, join(' ', @argv));
-    my $ssh = get_configuration($conf, $id, 'ssh');
+    my @ssh = split(/\s+/, get_configuration($conf, $id, 'ssh'));
     my $host = get_configuration($conf, $id, 'host', $id);
     log_debug('execute ssh: host=%s, command="%s"', $host, join(' ', @argv));
 
-    my $pid = open3(my $wh, my $rh, 0, $ssh, $host, @argv);
+    my $pid = open3(my $wh, my $rh, 0, @ssh, $host, @argv);
     if ($pid < 0) {
 	log_error('failed to execute ssh: host=%s, command="%s"',
 		  $id, join(' ', @argv));
