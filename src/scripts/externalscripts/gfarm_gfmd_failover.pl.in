@@ -20,7 +20,13 @@ use constant READ_TIMEOUT => 60;
 # Interval for checking promotion status.
 use constant PROMPTION_CHECK_INTERVAL => 20;
 
-# Interval for checking promotion status.
+# Retry interval of 'gfjurnal'.
+use constant GFJOURNAL_RETRY_INTERVAL => 5;
+
+# Maximum retry count of 'gfjurnal'.
+use constant GFJOURNAL_RETRY_MAX_COUNT => 2;
+
+# Default path of the configuration file.
 use constant DEFAULT_CONFIGURATION_FILE => '@ZABBIX_EXTSCRIPTDIR@/gfarm_gfmd_failover.conf';
 
 # Debug flag.
@@ -309,12 +315,13 @@ sub read_output_from_ssh {
     log_debug('begin: gfmd=%s, command="%s"', $id, join(' ', @argv));
     my @ssh = split(/\s+/, get_configuration($conf, $id, 'ssh'));
     my $host = get_configuration($conf, $id, 'host', $id);
-    log_debug('execute ssh: host=%s, command="%s"', $host, join(' ', @argv));
+    log_debug('execute ssh: gfmd=%s, command="%s"',
+	      get_gfmd_label($conf, $id), join(' ', @argv));
 
     my $pid = open3(my $wh, my $rh, 0, @ssh, $host, @argv);
     if ($pid < 0) {
-	log_error('failed to execute ssh: host=%s, command="%s"',
-		  $id, join(' ', @argv));
+	log_notice('failed to execute ssh: gfmd=%s, command="%s"',
+		   get_gfmd_label($conf, $id), join(' ', @argv));
 	return;
     }
     $rh->blocking(0);
@@ -325,10 +332,12 @@ sub read_output_from_ssh {
 	vec($rin, fileno($rh), 1) = 1;
 	$nfound = select(my $rout = $rin, undef, undef, READ_TIMEOUT);
 	if ($nfound < 0) {
-	    log_debug('failed to select(), %s', $!);
+	    log_notice('failed to select(): gfmd=%s, command="%s"',
+		       get_gfmd_label($conf, $id), join(' ', @argv));
 	    last;
 	} elsif ($nfound == 0) {
-	    log_debug('timeout');
+	    log_notice('timeout: gfmd=%s, command="%s"',
+		       get_gfmd_label($conf, $id), join(' ', @argv));
 	    last;
 	}
 	my $line = <$rh>;
@@ -357,8 +366,15 @@ sub read_output_from_ssh {
 	$wait_result = $?;
     } while (!WIFEXITED($wait_result) && !WIFSIGNALED($wait_result));
 
-    log_debug('end: exitcode=%d', WEXITSTATUS($wait_result));
-    $lines = undef if (WEXITSTATUS($wait_result) != 0);
+    my $exit_code = WEXITSTATUS($wait_result);
+    if ($exit_code == 0) {
+	log_notice('ssh succeeded: gfmd=%s, command="%s"',
+		   get_gfmd_label($conf, $id), join(' ', @argv));
+    } else {
+	$lines = undef;
+	log_notice('ssh failed: gfmd=%s, exitcode=%d, command="%s"',
+		   get_gfmd_label($conf, $id), $exit_code, join(' ', @argv));
+    }
     log_debug('end');
     return $lines;
 }
@@ -386,12 +402,14 @@ sub read_gfmd_pid_file {
 
     my $pid;
     if (!defined($lines) || @$lines == 0) {
-	log_debug('failed to get a PID of gfmd');
+	log_debug('failed to get a pid of gfmd');
     } elsif ($lines->[0] !~ /^(0|[1-9][0-9]*)$/) {
-	log_debug('invalid gfmd PID: %s', $lines->[0]);
+	log_notice('invalid gfmd pid: gfmd=%s, pid=%s',
+		   get_gfmd_label($conf, $id), $lines->[0]);
     } else {
 	$pid = int($lines->[0]);
-	log_debug('get pid: pid=%s', $pid);
+	log_notice('get gfmd pid: gfmd=%s, pid=%d',
+		   get_gfmd_label($conf, $id), $pid);
     }
     log_debug('end');
     return $pid;
@@ -421,6 +439,13 @@ sub gfmd_is_running {
 	}
     }
 
+    if ($is_running) {
+	log_notice('gfmd process exists: gfmd=%s',
+		   get_gfmd_label($conf, $id));
+    } else {
+	log_notice('gfmd process not exists: gfmd=%s',
+		   get_gfmd_label($conf, $id));
+    }
     log_debug('end');
     return $is_running;
 }
@@ -437,7 +462,7 @@ sub get_gfmd_pid {
 	$pid = undef if (!gfmd_is_running($conf, $id, $pid));
     }
 
-    log_debug('end: pid=%s', defined($pid) ? $pid : 'undef');
+    log_debug('end');
     return $pid;
 }
 
@@ -452,16 +477,37 @@ sub get_gfmd_max_seqno {
     my $gfjournal =
 	get_configuration($conf, $id, 'gfarm_bindir') . '/gfjournal';
     my $journal_file = get_configuration($conf, $id, 'gfmd_journal_file');
-    my $lines = read_output_from_ssh_sudo($conf, $id, undef,
-					  $gfjournal, '-m', $journal_file);
 
     my $max_seqno = 0;
-    if (!defined($lines) || @$lines == 0) {
-	log_debug('failed to get a largest journal sequence number');
-    } elsif ($lines->[0] !~ /^(0|[1-9][0-9]*)$/) {
-	log_debug('invalid seqno: %s', $lines->[0]);
-    } else {
-	$max_seqno = int($lines->[0]);
+    my $retry_count = 0;
+    for (;;) {
+	$max_seqno = 0;
+	my $lines = read_output_from_ssh_sudo($conf, $id, undef,
+					      $gfjournal, '-m', $journal_file);
+	if (!defined($lines)) {
+	    ; # nothing to do
+	} elsif ($lines->[0] !~ /^(0|[1-9][0-9]*)$/) {
+	    log_notice('invalid max_seqno: gfmd=%s, max_seqno=%s',
+		       get_gfmd_label($conf, $id), $lines->[0]);
+	} else {
+	    $max_seqno = int($lines->[0]);
+	    if ($max_seqno > 0) {
+		log_notice('get max_seqno: gfmd=%s, max_seqno=%d',
+			   get_gfmd_label($conf, $id), $max_seqno);
+		last;
+	    } else {
+		log_notice('invalid max_seqno: gfmd=%s, max_seqno=%d (<= 0)',
+			   get_gfmd_label($conf, $id), $max_seqno);
+	    }
+	}
+	$retry_count++;
+	if ($retry_count > GFJOURNAL_RETRY_MAX_COUNT) {
+	    log_notice('give up getting max_seqno: gfmd=%s',
+		       get_gfmd_label($conf, $id));
+	    last;
+	}
+	log_debug('sleep %d sec(s) and retry', GFJOURNAL_RETRY_INTERVAL);
+	sleep(GFJOURNAL_RETRY_INTERVAL);
     }
 
     log_debug('end');
@@ -502,6 +548,13 @@ sub gfmd_is_listening {
 	}
     }
 
+    if ($is_listening) {
+	log_notice('gfmd is listening: gfmd=%s',
+		   get_gfmd_label($conf, $id));
+    } else {
+	log_notice('gfmd is not listening: gfmd=%s',
+		   get_gfmd_label($conf, $id));
+    }
     log_debug('end');
     return $is_listening;
 }
@@ -523,9 +576,6 @@ sub get_gfmds_status {
 	    $gfmds->{$id}->{'pid'} = $pid;
 	    $gfmds->{$id}->{'is_listening'} = gfmd_is_listening($conf, $id);
 	}
-	log_notice('get status: gfmd=%s, pid=%d, is_listening=%s',
-		   get_gfmd_label($conf, $id), $gfmds->{$id}->{'pid'},
-		   $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
     }
 
     if (master_gfmd_is_running($gfmds)) {
@@ -534,9 +584,6 @@ sub get_gfmds_status {
 	log_notice("master gfmd is not running");
 	foreach my $id (keys(%$gfmds)) {
 	    $gfmds->{$id}->{'max_seqno'} = get_gfmd_max_seqno($conf, $id);
-	    log_notice('get max_seqno: gfmd=%s, max_seqno=%d',
-		       get_gfmd_label($conf, $id),
-		       $gfmds->{$id}->{'max_seqno'});
 	}
     }
 
