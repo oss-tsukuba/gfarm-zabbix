@@ -24,7 +24,7 @@ use constant PROMPTION_CHECK_INTERVAL => 20;
 use constant GFJOURNAL_RETRY_INTERVAL => 5;
 
 # Maximum retry count of 'gfjurnal'.
-use constant GFJOURNAL_RETRY_MAX_COUNT => 2;
+use constant GFJOURNAL_RETRY_MAX_COUNT => 6;
 
 # Default path of the configuration file.
 use constant DEFAULT_CONFIGURATION_FILE => '@ZABBIX_EXTSCRIPTDIR@/gfarm_gfmd_failover.conf';
@@ -290,6 +290,7 @@ sub add_gfmd_entry {
     $gfmds->{$id}->{'is_running'}   = 0;
     $gfmds->{$id}->{'pid'}          = 0;
     $gfmds->{$id}->{'max_seqno'}    = 0;
+    $gfmds->{$id}->{'error'}        = 0;
 }
 
 #
@@ -300,6 +301,19 @@ sub master_gfmd_is_running {
 
     foreach my $id (keys(%$gfmds)) {
 	return 1 if ($gfmds->{$id}->{is_listening});
+    }
+
+    return 0;
+}
+
+#
+# Return 1 if one or more errored gfmds exist.
+#
+sub errored_gfmd {
+    my ($gfmds) = @_;
+
+    foreach my $id (keys(%$gfmds)) {
+	return 1 if ($gfmds->{$id}->{error});
     }
 
     return 0;
@@ -390,7 +404,9 @@ sub read_output_from_ssh_sudo {
 }
 
 #
-# Read a pid file gfmd on a remote host.
+# Read a pid file gfmd on a remote host, using 'ssh'.
+#
+# Note that this sub-routine returns undef when the 'ssh' command is failed.
 #
 sub read_gfmd_pid_file {
     my ($conf, $id) = @_;
@@ -401,8 +417,11 @@ sub read_gfmd_pid_file {
 					  'head', '-1', $pid_file);
 
     my $pid;
-    if (!defined($lines) || @$lines == 0) {
+    if (!defined($lines)) {
+	; # nothing to do
+    } elsif (@$lines == 0) {
 	log_debug('failed to get a pid of gfmd');
+	$pid = 0;
     } elsif ($lines->[0] !~ /^(0|[1-9][0-9]*)$/) {
 	log_notice('invalid gfmd pid: gfmd=%s, pid=%s',
 		   get_gfmd_label($conf, $id), $lines->[0]);
@@ -419,6 +438,8 @@ sub read_gfmd_pid_file {
 # Using 'ssh', execute 'ps' command on a gfmd host and check if the gfmd
 # process is running.
 #
+# Note that this sub-routine returns undef when the command is failed.
+#
 sub gfmd_is_running {
     my ($conf, $id, $pid) = @_;
 
@@ -427,8 +448,9 @@ sub gfmd_is_running {
     my $lines = read_output_from_ssh($conf, $id, $filter,
 				     'ps', 'axww', '-o', 'pid,command');
 
-    my $is_running = 0;
+    my $is_running;
     if (defined($lines)) {
+	$is_running = 0;
 	for (my $i = 0; $i < @$lines; $i++) {
 	    $lines->[$i] =~ s/^\s+//;
 	    my @fields = split(/\s+/, $lines->[$i]);
@@ -439,19 +461,22 @@ sub gfmd_is_running {
 	}
     }
 
-    if ($is_running) {
-	log_notice('gfmd process exists: gfmd=%s',
-		   get_gfmd_label($conf, $id));
-    } else {
-	log_notice('gfmd process not exists: gfmd=%s',
-		   get_gfmd_label($conf, $id));
+    if (defined($is_running)) {
+	if ($is_running) {
+	    log_notice('gfmd process exists: gfmd=%s',
+		       get_gfmd_label($conf, $id));
+	} else {
+	    log_notice('gfmd process not exists: gfmd=%s',
+		       get_gfmd_label($conf, $id));
+	}
     }
     log_debug('end');
     return $is_running;
 }
 
 #
-# Get a gfmd with the section $id.
+# Get a pid of gfmd.
+# If an error occurs, undef is returned.
 #
 sub get_gfmd_pid {
     my ($conf, $id) = @_;
@@ -459,7 +484,14 @@ sub get_gfmd_pid {
     log_debug('begin: gfmd=%s', $id);
     my $pid = read_gfmd_pid_file($conf, $id);
     if (defined($pid)) {
-	$pid = undef if (!gfmd_is_running($conf, $id, $pid));
+	my $is_running = gfmd_is_running($conf, $id, $pid);
+	if (!defined($is_running)) {
+	    $pid = undef;
+	} elsif (!$is_running) {
+	    $pid = 0;
+	}
+    } else {
+	$pid = 0;
     }
 
     log_debug('end');
@@ -470,6 +502,9 @@ sub get_gfmd_pid {
 # Using 'ssh', execute 'gfjournal -m' on a gfmd host and get a maximum
 # sequence number in the journal file.
 #
+# Note that this sub-routine returns undef when the command is failed.
+# Otherwise, it returns a sequence number greater than 0.
+#
 sub get_gfmd_max_seqno {
     my ($conf, $id) = @_;
 
@@ -478,10 +513,9 @@ sub get_gfmd_max_seqno {
 	get_configuration($conf, $id, 'gfarm_bindir') . '/gfjournal';
     my $journal_file = get_configuration($conf, $id, 'gfmd_journal_file');
 
-    my $max_seqno = 0;
+    my $max_seqno;
     my $retry_count = 0;
     for (;;) {
-	$max_seqno = 0;
 	my $lines = read_output_from_ssh_sudo($conf, $id, undef,
 					      $gfjournal, '-m', $journal_file);
 	if (!defined($lines)) {
@@ -498,6 +532,7 @@ sub get_gfmd_max_seqno {
 	    } else {
 		log_notice('invalid max_seqno: gfmd=%s, max_seqno=%d (<= 0)',
 			   get_gfmd_label($conf, $id), $max_seqno);
+		$max_seqno = undef;
 	    }
 	}
 	$retry_count++;
@@ -518,11 +553,13 @@ sub get_gfmd_max_seqno {
 # Using 'ssh', execute 'netstat -n -l -t' on a gfmd host and check if
 # the gfmd process listens on a TCP port.
 #
+# Note that this sub-routine returns undef when the command is failed.
+# Otherwise it returns 0 (true) or 1 (false).
+#
 sub gfmd_is_listening {
     my ($conf, $id) = @_;
 
     log_debug('begin: gfmd=%s', $id);
-    my $is_listening = 0;
     my $address = get_configuration($conf, $id, 'gfmd_listen_address');
     my $port = get_configuration($conf, $id, 'gfmd_listen_port');
 
@@ -537,7 +574,9 @@ sub gfmd_is_listening {
 	$lines = read_output_from_ssh_sudo($conf, $id, $filter, 'ss', '-nlt');
     }
 
+    my $is_listening;
     if (defined($lines)) {
+	$is_listening = 0;
 	for (my $i = 0; $i < @$lines; $i++) {
 	    $lines->[$i] =~ s/^\s+//;
 	    my @fields = split(/\s+/, $lines->[$i]);
@@ -548,12 +587,14 @@ sub gfmd_is_listening {
 	}
     }
 
-    if ($is_listening) {
-	log_notice('gfmd is listening: gfmd=%s',
-		   get_gfmd_label($conf, $id));
-    } else {
-	log_notice('gfmd is not listening: gfmd=%s',
-		   get_gfmd_label($conf, $id));
+    if (defined($is_listening)) {
+	if ($is_listening) {
+	    log_notice('gfmd is listening: gfmd=%s',
+		       get_gfmd_label($conf, $id));
+	} else {
+	    log_notice('gfmd is not listening: gfmd=%s',
+		       get_gfmd_label($conf, $id));
+	}
     }
     log_debug('end');
     return $is_listening;
@@ -571,10 +612,19 @@ sub get_gfmds_status {
     foreach my $id (section_keys($conf)) {
 	add_gfmd_entry($gfmds, $id);
 	my $pid = get_gfmd_pid($conf, $id);
-	$gfmds->{$id}->{'is_running'} = defined($pid);
+	if (!defined($pid)) {
+	    $gfmds->{$id}->{'error'} = 1;
+	    next;
+	}
+	$gfmds->{$id}->{'is_running'} = ($pid > 0);
 	if ($gfmds->{$id}->{'is_running'}) {
 	    $gfmds->{$id}->{'pid'} = $pid;
-	    $gfmds->{$id}->{'is_listening'} = gfmd_is_listening($conf, $id);
+	    my $is_running = gfmd_is_listening($conf, $id);
+	    if (!defined($is_running)) {
+		$gfmds->{$id}->{'error'} = 1;
+		next;
+	    }
+	    $gfmds->{$id}->{'is_listening'} = $is_running;
 	}
     }
 
@@ -583,7 +633,12 @@ sub get_gfmds_status {
     } else {
 	log_notice("master gfmd is not running");
 	foreach my $id (keys(%$gfmds)) {
-	    $gfmds->{$id}->{'max_seqno'} = get_gfmd_max_seqno($conf, $id);
+	    my $max_seqno = get_gfmd_max_seqno($conf, $id);
+	    if (!defined($max_seqno)) {
+		$gfmds->{$id}->{'error'} = 1;
+		next;
+	    }
+	    $gfmds->{$id}->{'max_seqno'} = $max_seqno;
 	}
     }
 
@@ -683,15 +738,15 @@ sub failover_gfmd {
     log_notice('failover start: new-master-gfmd=%s (%s:%s)',
 	       $id, $host, $port);
     if (!send_signal_to_gfmd($conf, $gfmds, $id, 'USR1')) {
-	log_error('failed to send a signal to gfmd: gfmd=%s (%s:%s)',
-		  $id, $host, $port);
+	log_notice('failed to send a signal to gfmd: gfmd=%s (%s:%s)',
+		   $id, $host, $port);
+    } elsif (!wait_gfmd_promotion($conf, $gfmds, $id)) {
+	log_notice('gfmd promotion timeout: gfmd=%s (%s:%s)',
+		   $id, $host, $port);
+    } else {
+	log_notice('failover complete: new-master-gfmd=%s (%s:%s)',
+		   $id, $host, $port);
     }
-    if (!wait_gfmd_promotion($conf, $gfmds, $id)) {
-	log_error('gfmd promotion timeout: gfmd=%s (%s:%s)',
-		  $id, $host, $port);
-    }
-    log_notice('failover complete: new-master-gfmd=%s (%s:%s)',
-	       $id, $host, $port);
 
     log_debug('end');
 }
@@ -708,12 +763,18 @@ sub print_all_gfmsds_status {
 	   'RUN', 'LISTEN', 'MAX_SEQNO', 'ID');
 
     foreach my $id (section_keys($conf)) {
-	printf('%-3s  ', $gfmds->{$id}->{'is_running'}   ? 'yes' : '-');
-	printf('%-6s  ', $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
-	if ($gfmds->{$id}->{'max_seqno'} > 0) {
-	    printf('%20d  ', $gfmds->{$id}->{'max_seqno'});
+	if ($gfmds->{$id}->{'error'}) {
+	    printf('%-3s  ', '***');
+	    printf('%-6s  ', '***');
+	    printf('%20s  ', '***');
 	} else {
-	    printf('%20s  ', '-');
+	    printf('%-3s  ', $gfmds->{$id}->{'is_running'}   ? 'yes' : '-');
+	    printf('%-6s  ', $gfmds->{$id}->{'is_listening'} ? 'yes' : '-');
+	    if ($gfmds->{$id}->{'max_seqno'} > 0) {
+		printf('%20d  ', $gfmds->{$id}->{'max_seqno'});
+	    } else {
+		printf('%20s  ', '-');
+	    }
 	}
 	printf("%-s\n", get_gfmd_label($conf, $id));
     }
@@ -768,16 +829,25 @@ my $lock_fh = lock_file($conf);
 
 my $gfmds = get_gfmds_status($conf);
 print_all_gfmsds_status($conf, $gfmds) if ($verbose || $dry_run);
-exit(0) if (master_gfmd_is_running($gfmds));
-my $new_master_id = determine_new_master_gfmd($conf, $gfmds);
-log_error('no master gfmd candidate') if (!defined($new_master_id));
-if ($dry_run) {
-    printf("suitable candidate for master gfmd is %s\n",
-	   get_gfmd_label($conf, $new_master_id));
-} else {
-    failover_gfmd($conf, $gfmds, $new_master_id);
+if (master_gfmd_is_running($gfmds)) {
+    print("master gfmd is running\n") if ($dry_run);
+    exit(0);
 }
-
+if (errored_gfmd($gfmds)) {
+    log_notice('an error occurred, give up failover');
+    printf("an error occurred, no master gfmd candidate\n") if ($dry_run);
+} else {
+    my $new_master_id = determine_new_master_gfmd($conf, $gfmds);
+    if (!defined($new_master_id)) {
+	log_notice('no master gfmd candidate');
+	print("no master gfmd candidate\n") if ($dry_run);
+    } elsif ($dry_run) {
+	printf("suitable candidate for master gfmd is %s\n",
+	       get_gfmd_label($conf, $new_master_id));
+    } else {
+	failover_gfmd($conf, $gfmds, $new_master_id);
+    }
+}
 log_notice('end');
 log_finalize();
 unlock_file($lock_fh);
