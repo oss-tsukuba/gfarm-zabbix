@@ -1,5 +1,6 @@
 Release note for Gfarm Zabbix plugin 2.1.0
 ==========================================
+
 [2015.3.25]
 
 Updated feature
@@ -7,11 +8,11 @@ Updated feature
   - it gives up promotion of a slave metadata server when it may
     cause inconsistency of metadata among the servers
     [sf.net ticket #825], [sf.net ticket #837]
-  - it retries executing 'gfjournal -m' on a metadata server via SSH
+  - it retries to execute 'gfjournal -m' on a metadata server via SSH
     [sf.net ticket #834]
 * the failover script supports CentOS 7 [sf.net ticket #826]
 * add a trigger to the template 'Templete_Gfarm represent_client_nodep',
-  which alerts administrators to multiple master metadata servers are
+  which alerts administrators to multiple master metadata servers
   running [sf.net ticket #778]
 * do not alert administrators to successive triggers
   [sf.net ticket #781], [sf.net ticket #823], [sf.net ticket #825],
@@ -19,12 +20,12 @@ Updated feature
 Documentation
 * explain firewall setting of gfarm-zabbix
   [sf.net ticket #840]
-* explains how to install gfarm-zabbix on CentOS 7
+* explain how to install gfarm-zabbix on CentOS 7
   [sf.net ticket #791]
-* explains how the failover script chooses new master metadata server
+* explain how the failover script chooses new master metadata server
 
 Bug fix
-* whitespaces in 'gfarm_gfmd_failover.conf' is not preserved correctly
+* whitespaces in 'gfarm_gfmd_failover.conf' are not preserved correctly
   [sf.net ticket #833]
 
 Release note for Gfarm Zabbix plugin 2.0.0
