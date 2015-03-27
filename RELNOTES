@@ -7,8 +7,7 @@ Updated feature
   - it gives up promotion of a slave metadata server when it may
     cause inconsistency of metadata among the servers
     [sf.net ticket #825], [sf.net ticket #837]
-  - it retries executing 'gfjournal -m' on a metadata server via SSH,
-    since gfmd is still updating the journal file in this case
+  - it retries executing 'gfjournal -m' on a metadata server via SSH
     [sf.net ticket #834]
 * the failover script supports CentOS 7 [sf.net ticket #826]
 * add a trigger to the template 'Templete_Gfarm represent_client_nodep',
@@ -18,7 +17,7 @@ Updated feature
   [sf.net ticket #781], [sf.net ticket #823], [sf.net ticket #825],
 
 Documentation
-* explain firewall setting of gfarm-zabbix in the install manual
+* explain firewall setting of gfarm-zabbix
   [sf.net ticket #840]
 * explains how to install gfarm-zabbix on CentOS 7
   [sf.net ticket #791]
