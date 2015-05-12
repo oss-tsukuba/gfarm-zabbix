@@ -56,7 +56,7 @@
           <comments></comments>
         </trigger>
         <trigger>
-          <description>Low free disk space on {$GFSD_SPPOL_DIR} in %</description>
+          <description>Low free disk space on {$GFSD_SPOOL_DIR} in %</description>
           <type>0</type>
           <expression>{Template_Gfarm_gfsd_nodep:vfs.fs.size[{$GFSD_SPOOL_DIR},pfree].last(0)}&lt;{$GFSD_SPOOL_DIR_FREE_THRESHOLD}</expression>
           <url></url>
