@@ -90,6 +90,8 @@ for I in \
     gfarm_generic_client_gfhost.sh \
     gfarm_generic_client_gfmdhost.sh \
     gfarm_gfmd_failover.pl \
+    gfarm_gfmd_failover_agent.pl \
+    gfarm_gfmd_failover_common.pl \
     gfarm_gfmd_gfhost.sh \
     gfarm_gfmd_postgresql.sh \
     gfarm_gfsd_gfhost.sh \
