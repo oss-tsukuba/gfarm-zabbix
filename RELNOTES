@@ -1,3 +1,13 @@
+Release note for Gfarm Zabbix plugin 2.2.0
+
+[2015.7.24]
+
+Updated feature
+* improve the failover script
+  - it gets status of gfmd servers in parallel [sf.net ticket #858]
+  - the configuration parameter 'inspection_timeout' is added
+    [sf.net ticket #858]
+
 Release note for Gfarm Zabbix plugin 2.1.0
 ==========================================
 
