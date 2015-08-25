@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<zabbix_export date="14.11.14" time="15.31" version="1.0">
+<zabbix_export date="15.08.25" time="09.51" version="1.0">
   <hosts>
     <host name="Template_Gfarm_common_nodep">
       <proxy_hostid>0</proxy_hostid>
@@ -76,7 +76,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_common_nodep:vm.memory.size[total].last(0)}-{Template_Gfarm_common_nodep:vm.memory.size[cached].last(0)}-{Template_Gfarm_common_nodep:vm.memory.size[free].last(0)}-{Template_Gfarm_common_nodep:vm.memory.size[buffers].last(0)})/{Template_Gfarm_common_nodep:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_common_nodep:vm.memory.size[available].last(0)}/{Template_Gfarm_common_nodep:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -297,6 +297,40 @@
           <status>0</status>
           <data_type>0</data_type>
           <units />
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
           <multiplier>0</multiplier>
           <delta>0</delta>
           <formula>1</formula>
@@ -1441,7 +1475,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_generic_client:vm.memory.size[total].last(0)}-{Template_Gfarm_generic_client:vm.memory.size[cached].last(0)}-{Template_Gfarm_generic_client:vm.memory.size[free].last(0)}-{Template_Gfarm_generic_client:vm.memory.size[buffers].last(0)})/{Template_Gfarm_generic_client:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_generic_client:vm.memory.size[available].last(0)}/{Template_Gfarm_generic_client:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -1755,6 +1789,40 @@
             <application>Gfarm host</application>
           </applications>
         </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
         <item key="vm.memory.size[buffers]" type="0" value_type="3">
           <description>Memory size of kernel buffers</description>
           <ipmi_sensor />
@@ -2019,7 +2087,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_gfmd:vm.memory.size[total].last(0)}-{Template_Gfarm_gfmd:vm.memory.size[cached].last(0)}-{Template_Gfarm_gfmd:vm.memory.size[free].last(0)}-{Template_Gfarm_gfmd:vm.memory.size[buffers].last(0)})/{Template_Gfarm_gfmd:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_gfmd:vm.memory.size[available].last(0)}/{Template_Gfarm_gfmd:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -2435,6 +2503,40 @@
             <application>Gfarm host</application>
           </applications>
         </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
         <item key="vm.memory.size[buffers]" type="0" value_type="3">
           <description>Memory size of kernel buffers</description>
           <ipmi_sensor />
@@ -2699,7 +2801,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_gfsd:vm.memory.size[total].last(0)}-{Template_Gfarm_gfsd:vm.memory.size[cached].last(0)}-{Template_Gfarm_gfsd:vm.memory.size[free].last(0)}-{Template_Gfarm_gfsd:vm.memory.size[buffers].last(0)})/{Template_Gfarm_gfsd:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_gfsd:vm.memory.size[available].last(0)}/{Template_Gfarm_gfsd:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -3115,6 +3217,40 @@
             <application>Gfarm host</application>
           </applications>
         </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
         <item key="vm.memory.size[buffers]" type="0" value_type="3">
           <description>Memory size of kernel buffers</description>
           <ipmi_sensor />
@@ -3361,7 +3497,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_represent_client:vm.memory.size[total].last(0)}-{Template_Gfarm_represent_client:vm.memory.size[cached].last(0)}-{Template_Gfarm_represent_client:vm.memory.size[free].last(0)}-{Template_Gfarm_represent_client:vm.memory.size[buffers].last(0)})/{Template_Gfarm_represent_client:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_represent_client:vm.memory.size[available].last(0)}/{Template_Gfarm_represent_client:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -3709,6 +3845,40 @@
             <application>Gfarm host</application>
           </applications>
         </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
         <item key="vm.memory.size[buffers]" type="0" value_type="3">
           <description>Memory size of kernel buffers</description>
           <ipmi_sensor />
@@ -3937,7 +4107,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>100.0-({Template_Gfarm_zabbix:vm.memory.size[total].last(0)}-{Template_Gfarm_zabbix:vm.memory.size[cached].last(0)}-{Template_Gfarm_zabbix:vm.memory.size[free].last(0)}-{Template_Gfarm_zabbix:vm.memory.size[buffers].last(0)})/{Template_Gfarm_zabbix:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_zabbix:vm.memory.size[available].last(0)}/{Template_Gfarm_zabbix:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url />
           <status>0</status>
           <priority>3</priority>
@@ -4193,6 +4363,40 @@
           <status>0</status>
           <data_type>0</data_type>
           <units />
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt />
+          <delay_flex />
+          <authtype>0</authtype>
+          <username />
+          <password />
+          <publickey />
+          <privatekey />
+          <params />
+          <trapper_hosts />
+          <snmp_community />
+          <snmp_oid />
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname />
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase />
+          <snmpv3_privpassphrase />
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
+        <item key="vm.memory.size[available]" type="0" value_type="3">
+          <description>Available memory size</description>
+          <ipmi_sensor />
+          <delay>300</delay>
+          <history>90</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units>B</units>
           <multiplier>0</multiplier>
           <delta>0</delta>
           <formula>1</formula>
