@@ -1,4 +1,5 @@
 Release note for Gfarm Zabbix plugin 2.2.0
+==========================================
 
 [2015.7.24]
 
@@ -7,6 +8,11 @@ Updated feature
   - it gets status of gfmd servers in parallel [sf.net ticket #858]
   - the configuration parameter 'inspection_timeout' is added
     [sf.net ticket #858]
+
+* improve "Low free memory on server {HOSTNAME}" trigger.
+  it uses vm.memory.size[available] instead of vm.memory.size[free],
+  vm.memory.size[cached] and vm.memory.size[buffers] to detect the status
+  more accurately [sf.net ticket #899]
 
 Release note for Gfarm Zabbix plugin 2.1.0
 ==========================================
