@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<zabbix_export version="1.0" date="12.02.28" time="15.53">
+<zabbix_export version="1.0" date="15.09.09" time="09.47">
   <hosts>
-    <host name="Template_Gfarm_zabbix_nodep">
+    <host name="Template_Gfarm_gfsd_linux">
       <proxy_hostid>0</proxy_hostid>
       <useip>1</useip>
       <dns></dns>
@@ -20,20 +20,20 @@
       </groups>
       <triggers>
         <trigger>
-          <description>zabbix_server is not running on {HOSTNAME}</description>
+          <description>Low free disk space on {$GFSD_SPOOL_DIR} in %</description>
           <type>0</type>
-          <expression>{Template_Gfarm_zabbix_nodep:proc.num[zabbix_server].last(0)}&lt;1</expression>
+          <expression>{Template_Gfarm_gfsd_linux:vfs.fs.size[{$GFSD_SPOOL_DIR},pfree].last(0)}&lt;{$GFSD_SPOOL_DIR_FREE_THRESHOLD}</expression>
           <url></url>
           <status>0</status>
-          <priority>4</priority>
+          <priority>2</priority>
           <comments></comments>
         </trigger>
       </triggers>
       <items>
-        <item type="0" key="proc.num[zabbix_server]" value_type="3">
-          <description>Number of process running zabbix_server</description>
+        <item type="0" key="vfs.fs.size[{$GFSD_SPOOL_DIR},pfree]" value_type="0">
+          <description>Free disk space on $1 in %</description>
           <ipmi_sensor></ipmi_sensor>
-          <delay>300</delay>
+          <delay>3600</delay>
           <history>90</history>
           <trends>365</trends>
           <status>0</status>
@@ -61,14 +61,22 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Zabbix Process</application>
-            <application>Zabbix</application>
+            <application>Gfarm gfsd</application>
           </applications>
         </item>
       </items>
       <templates/>
       <graphs/>
-      <macros/>
+      <macros>
+        <macro>
+          <value>30</value>
+          <name>{$GFSD_SPOOL_DIR_FREE_THRESHOLD}</name>
+        </macro>
+        <macro>
+          <value>/var/gfarm-spool</value>
+          <name>{$GFSD_SPOOL_DIR}</name>
+        </macro>
+      </macros>
     </host>
   </hosts>
   <dependencies/>

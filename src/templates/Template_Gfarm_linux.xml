@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export version="1.0" date="15.08.25" time="09.55">
   <hosts>
-    <host name="Template_Gfarm_common_nodep">
+    <host name="Template_Gfarm_linux">
       <proxy_hostid>0</proxy_hostid>
       <useip>1</useip>
       <dns></dns>
@@ -22,7 +22,7 @@
         <trigger>
           <description>I/O error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_common_nodep:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_common_nodep:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>
@@ -31,7 +31,7 @@
         <trigger>
           <description>Internal error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_common_nodep:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_common_nodep:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>
@@ -40,7 +40,7 @@
         <trigger>
           <description>Zabbix_agentd is not running on {HOSTNAME}</description>
           <type>0</type>
-          <expression>({Template_Gfarm_common_nodep:proc.num[zabbix_agentd].last(0)}&lt;1 | {Template_Gfarm_common_nodep:proc.num[zabbix_agentd].nodata({$ZABBIX_AGENT_TIMEOUT})}=1)</expression>
+          <expression>({Template_Gfarm_linux:proc.num[zabbix_agentd].last(0)}&lt;1 | {Template_Gfarm_linux:proc.num[zabbix_agentd].nodata({$ZABBIX_AGENT_TIMEOUT})}=1)</expression>
           <url></url>
           <status>0</status>
           <priority>4</priority>
@@ -49,7 +49,7 @@
         <trigger>
           <description>Processor load is too high on {HOSTNAME}</description>
           <type>0</type>
-          <expression>({Template_Gfarm_common_nodep:system.cpu.load[,avg1].last(0)}/{Template_Gfarm_common_nodep:system.cpu.num.last(0)})&gt;{$LOADAVG_THRESHOLD}</expression>
+          <expression>({Template_Gfarm_linux:system.cpu.load[,avg1].last(0)}/{Template_Gfarm_linux:system.cpu.num.last(0)})&gt;{$LOADAVG_THRESHOLD}</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>
@@ -58,7 +58,7 @@
         <trigger>
           <description>Time drift between Zabbix server and {HOSTNAME}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_common_nodep:system.localtime.fuzzytime({$TIME_DIFF_THRESHOLD})}=0</expression>
+          <expression>{Template_Gfarm_linux:system.localtime.fuzzytime({$TIME_DIFF_THRESHOLD})}=0</expression>
           <url></url>
           <status>0</status>
           <priority>2</priority>
@@ -67,7 +67,7 @@
         <trigger>
           <description>Low free disk space on {$MONITOR_DIR} in %</description>
           <type>0</type>
-          <expression>{Template_Gfarm_common_nodep:vfs.fs.size[{$MONITOR_DIR},pfree].last(0)}&lt;{$MONITOR_DIR_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_linux:vfs.fs.size[{$MONITOR_DIR},pfree].last(0)}&lt;{$MONITOR_DIR_FREE_THRESHOLD}</expression>
           <url></url>
           <status>0</status>
           <priority>2</priority>
@@ -76,7 +76,7 @@
         <trigger>
           <description>Low free memory on server {HOSTNAME}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_common_nodep:vm.memory.size[available].last(0)}/{Template_Gfarm_common_nodep:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_linux:vm.memory.size[available].last(0)}/{Template_Gfarm_linux:vm.memory.size[total].last(0)}*100.0&lt;{$MEM_FREE_THRESHOLD}</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>

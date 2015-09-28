@@ -139,11 +139,16 @@ for I in \
     [ -f $ZABBIX_EXTSCRIPTDIR/$I ] && rm -f $ZABBIX_EXTSCRIPTDIR/$I
 done
 
-if [ -f $ZABBIX_EXTSCRIPTDIR/zbx_chk_gfarm.conf ]; then
-    echo "The following file is not used any longer:"
-    echo "    $ZABBIX_EXTSCRIPTDIR/zbx_chk_gfarm.conf"
-    echo
-fi
+for I in \
+    $ZABBIX_EXTSCRIPTDIR/zbx_chk_gfarm.conf \
+    $ZABBIX_AGENTD_CONFSUBDIR/userparameter_postgresql.conf \
+    $ZABBIX_AGENTD_CONFSUBDIR/userparameter_redundant_gfarm.conf; do
+    if [ -f $I ]; then
+        echo "The following file is not used any longer:"
+        echo "    $I"
+        echo
+    fi
+done
 
 #
 # Change mode of $GFARM_SYSLOG_FILE
