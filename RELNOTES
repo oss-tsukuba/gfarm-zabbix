@@ -1,3 +1,15 @@
+Release note for Gfarm Zabbix plugin 3.0.0
+==========================================
+
+[2015.9.30]
+
+Updated feature
+* restructure the templates
+  - the templates of this version has no conflict with "Template OS Linux"
+    so that a host can be linked with both "Template OS Linux" and Gfarm
+    Zabbix templates [sf.net ticket #911]
+  - Template_Gfarm_zabbix are no longer provided
+
 Release note for Gfarm Zabbix plugin 2.2.0
 ==========================================
 
