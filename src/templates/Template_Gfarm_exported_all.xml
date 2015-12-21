@@ -706,7 +706,7 @@
           <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
-          <priority>3</priority>
+          <priority>4</priority>
           <comments></comments>
         </trigger>
         <trigger>
