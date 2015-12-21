@@ -703,7 +703,7 @@
         <trigger>
           <description>I/O error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>
@@ -712,7 +712,7 @@
         <trigger>
           <description>Internal error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(err)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
           <priority>3</priority>
