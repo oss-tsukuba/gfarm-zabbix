@@ -29,6 +29,15 @@
           <comments></comments>
         </trigger>
         <trigger>
+          <description>kernel bio too big message in log file {$KERNEL_LOGFILE}</description>
+          <type>0</type>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <url></url>
+          <status>0</status>
+          <priority>4</priority>
+          <comments></comments>
+        </trigger>
+        <trigger>
           <description>Internal error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
           <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
@@ -86,6 +95,40 @@
       <items>
         <item type="7" key="log[{$KERNEL_LOGFILE},&quot;kernel:\s.*I/O\serror&quot;,UTF-8]" value_type="2">
           <description>I/O error message in log file $1</description>
+          <ipmi_sensor></ipmi_sensor>
+          <delay>600</delay>
+          <history>30</history>
+          <trends>365</trends>
+          <status>0</status>
+          <data_type>0</data_type>
+          <units></units>
+          <multiplier>0</multiplier>
+          <delta>0</delta>
+          <formula>1</formula>
+          <lastlogsize>0</lastlogsize>
+          <logtimefmt></logtimefmt>
+          <delay_flex></delay_flex>
+          <authtype>0</authtype>
+          <username></username>
+          <password></password>
+          <publickey></publickey>
+          <privatekey></privatekey>
+          <params></params>
+          <trapper_hosts></trapper_hosts>
+          <snmp_community></snmp_community>
+          <snmp_oid></snmp_oid>
+          <snmp_port>161</snmp_port>
+          <snmpv3_securityname></snmpv3_securityname>
+          <snmpv3_securitylevel>0</snmpv3_securitylevel>
+          <snmpv3_authpassphrase></snmpv3_authpassphrase>
+          <snmpv3_privpassphrase></snmpv3_privpassphrase>
+          <valuemapid>0</valuemapid>
+          <applications>
+            <application>Gfarm host</application>
+          </applications>
+        </item>
+        <item type="7" key="log[{$KERNEL_LOGFILE},&quot;kernel:\s.*bio\stoo\sbig\sdevice&quot;,UTF-8]" value_type="2">
+          <description>kernel bio too big message in log file $1</description>
           <ipmi_sensor></ipmi_sensor>
           <delay>600</delay>
           <history>30</history>
