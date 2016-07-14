@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<zabbix_export version="1.0" date="14.07.09" time="09.45">
+<zabbix_export version="1.0" date="16.05.30" time="10.17">
   <hosts>
-    <host name="Template_Gfarm_gfmd_linux">
+    <host name="Template_Gfarm_gfsd_linux_alt">
       <proxy_hostid>0</proxy_hostid>
       <useip>1</useip>
       <dns></dns>
@@ -20,9 +20,9 @@
       </groups>
       <triggers>
         <trigger>
-          <description>Low free disk space on {$GFMD_PGDATA_DIR} in %</description>
+          <description>Low free disk space on {$GFSD_SPOOL_DIR} in %</description>
           <type>0</type>
-          <expression>{Template_Gfarm_gfmd_linux:vfs.fs.size[{$GFMD_PGDATA_DIR},pfree].last(0)}&lt;{$GFMD_PGDATA_DIR_FREE_THRESHOLD}</expression>
+          <expression>{Template_Gfarm_gfsd_linux_alt:vfs.fs.size[{$GFSD_SPOOL_DIR},pfree].last(0)}&lt;{$GFSD_SPOOL_DIR_FREE_THRESHOLD}</expression>
           <url></url>
           <status>0</status>
           <priority>2</priority>
@@ -30,7 +30,7 @@
         </trigger>
       </triggers>
       <items>
-        <item type="0" key="vfs.fs.size[{$GFMD_PGDATA_DIR},pfree]" value_type="0">
+        <item type="0" key="vfs.fs.size[{$GFSD_SPOOL_DIR},pfree]" value_type="0">
           <description>Free disk space on $1 in %</description>
           <ipmi_sensor></ipmi_sensor>
           <delay>3600</delay>
@@ -61,7 +61,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm gfmd</application>
+            <application>Gfarm gfsd</application>
           </applications>
         </item>
       </items>
@@ -70,11 +70,11 @@
       <macros>
         <macro>
           <value>30</value>
-          <name>{$GFMD_PGDATA_DIR_FREE_THRESHOLD}</name>
+          <name>{$GFSD_SPOOL_DIR_FREE_THRESHOLD}</name>
         </macro>
         <macro>
-          <value>/var/gfarm-pgsql</value>
-          <name>{$GFMD_PGDATA_DIR}</name>
+          <value>/var/gfarm-spool</value>
+          <name>{$GFSD_SPOOL_DIR}</name>
         </macro>
       </macros>
     </host>
