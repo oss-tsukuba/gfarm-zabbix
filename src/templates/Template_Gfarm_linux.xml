@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<zabbix_export version="1.0" date="16.05.30" time="11.47">
+<zabbix_export version="1.0" date="16.11.24" time="15.11">
   <hosts>
     <host name="Template_Gfarm_linux">
       <proxy_hostid>0</proxy_hostid>
@@ -40,10 +40,10 @@
         <trigger>
           <description>Internal error message in log file {$KERNEL_LOGFILE}</description>
           <type>0</type>
-          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*internal\serror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
+          <expression>{Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8].regexp(kernel)}#0 &amp; {Template_Gfarm_linux:log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8].nodata({$NODATA_TIMEOUT})}=0</expression>
           <url></url>
           <status>0</status>
-          <priority>3</priority>
+          <priority>4</priority>
           <comments></comments>
         </trigger>
         <trigger>
@@ -134,7 +134,7 @@
             <application>Gfarm host</application>
           </applications>
         </item>
-        <item type="7" key="log[{$KERNEL_LOGFILE},&quot;kernel:\s.*internal\serror&quot;,UTF-8]" value_type="2">
+        <item type="7" key="log[{$KERNEL_LOGFILE},&quot;kernel:\s.*[Ii]nternal\s[Ee]rror&quot;,UTF-8]" value_type="2">
           <description>Internal error message in log file $1</description>
           <ipmi_sensor></ipmi_sensor>
           <delay>600</delay>
