@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<zabbix_export version="1.0" date="16.11.24" time="15.12">
+<zabbix_export version="1.0" date="16.12.27" time="10.53">
   <hosts>
     <host name="Template_Gfarm_generic_client">
       <proxy_hostid>0</proxy_hostid>
@@ -143,6 +143,15 @@
           <description>PostgreSQL server is not running</description>
           <type>0</type>
           <expression>{Template_Gfarm_gfmd:gfarm.gfmd.postgresql.regexp(^ok$)}=0</expression>
+          <url></url>
+          <status>0</status>
+          <priority>4</priority>
+          <comments></comments>
+        </trigger>
+        <trigger>
+          <description>gfmd checksum error in {$GFMD_LOGFILE} on {HOSTNAME}</description>
+          <type>1</type>
+          <expression>(({Template_Gfarm_gfmd:log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].regexp(\[1003762\])})#0) &amp; (({Template_Gfarm_gfmd:log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].nodata({$MULTIPLE_EVENTS_TIMEOUT})})=0)</expression>
           <url></url>
           <status>0</status>
           <priority>4</priority>
@@ -313,6 +322,10 @@
           <name>{$GFMD_LOGFILE}</name>
         </macro>
         <macro>
+          <value>15</value>
+          <name>{$MULTIPLE_EVENTS_TIMEOUT}</name>
+        </macro>
+        <macro>
           <value>10800</value>
           <name>{$NODATA_TIMEOUT}</name>
         </macro>
@@ -432,6 +445,15 @@
           <comments></comments>
         </trigger>
         <trigger>
+          <description>gfsd I/O error on {HOSTNAME}</description>
+          <type>1</type>
+          <expression>(({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].regexp(\[1004213\])})#0) &amp; (({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].nodata({$MULTIPLE_EVENTS_TIMEOUT})})=0)</expression>
+          <url></url>
+          <status>0</status>
+          <priority>4</priority>
+          <comments></comments>
+        </trigger>
+        <trigger>
           <description>gfsd error message in {$GFSD_LOGFILE} on {HOSTNAME}</description>
           <type>0</type>
           <expression>(({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].regexp(err)})#0) &amp; (({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].nodata({$NODATA_TIMEOUT})})=0)</expression>
@@ -447,6 +469,24 @@
           <url></url>
           <status>0</status>
           <priority>2</priority>
+          <comments></comments>
+        </trigger>
+        <trigger>
+          <description>write_verify checksum error on {HOSTNAME}</description>
+          <type>1</type>
+          <expression>(({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].regexp(write_verify.*checksum mismatch.*should be)})#0) &amp; (({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].nodata({$MULTIPLE_EVENTS_TIMEOUT})})=0)</expression>
+          <url></url>
+          <status>0</status>
+          <priority>4</priority>
+          <comments></comments>
+        </trigger>
+        <trigger>
+          <description>write_verify state was not saved on {HOSTNAME}</description>
+          <type>1</type>
+          <expression>(({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].regexp(write_verify: gfsd crashed previously)})#0) &amp; (({Template_Gfarm_gfsd:log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+&lt;err&gt;",UTF-8].nodata({$MULTIPLE_EVENTS_TIMEOUT})})=0)</expression>
+          <url></url>
+          <status>0</status>
+          <priority>4</priority>
           <comments></comments>
         </trigger>
       </triggers>
@@ -594,6 +634,10 @@
         <macro>
           <value>/var/log/messages</value>
           <name>{$GFSD_LOGFILE}</name>
+        </macro>
+        <macro>
+          <value>15</value>
+          <name>{$MULTIPLE_EVENTS_TIMEOUT}</name>
         </macro>
         <macro>
           <value>10800</value>
