@@ -1,3 +1,31 @@
+Release note for Gfarm Zabbix plugin 4.0.0
+==========================================
+
+[201X.XX.XX] - NOT RELEASED YET
+
+New feature
+* detect kernel errors like "kernel: bio too big device dm-13 (1944 > 1024)"
+  [sf.net ticket #931]
+* detect "kernel: XFS: Internal error" [sf.net ticket #976]
+* report "checksum error" and "I/O error" every time if it's logged. 
+  [sf.net ticket #977]
+
+Updated feature
+* restructure the templates.
+  this fixes a problem that gfarm_zabbix-3.0 recommended setting lost
+  some important checks [sf.net ticket #966]
+* treat "I/O error" message from kernel as "high" priority problem
+  instead of an "average" problem [sf.net ticket #930]
+
+Bug fix
+* gfarm_zabbix does not detect some kernel errors [sf.net ticket #929]
+
+Documentation
+* gfarm_zabbix-3.0.0 documentation problems [sf.net ticket #932]
+* doc/ja/zabbix_install_manual may be misunderstood about macro settings 
+  [sf.net ticket #945]
+
+
 Release note for Gfarm Zabbix plugin 3.0.0
 ==========================================
 
