@@ -61,7 +61,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm gfsd</application>
+            <application>Gfarm gfsd linux alternative</application>
           </applications>
         </item>
       </items>

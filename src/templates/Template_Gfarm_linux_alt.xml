@@ -79,7 +79,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm host</application>
+            <application>Gfarm host alternative</application>
           </applications>
         </item>
         <item type="0" key="system.cpu.load[,avg1]" value_type="0">
@@ -113,7 +113,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm host</application>
+            <application>Gfarm host alternative</application>
           </applications>
         </item>
         <item type="0" key="system.cpu.num" value_type="3">
@@ -147,7 +147,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm host</application>
+            <application>Gfarm host alternative</application>
           </applications>
         </item>
         <item type="0" key="vfs.fs.size[{$MONITOR_DIR},pfree]" value_type="0">
@@ -181,7 +181,7 @@
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
           <valuemapid>0</valuemapid>
           <applications>
-            <application>Gfarm host</application>
+            <application>Gfarm host alternative</application>
           </applications>
         </item>
       </items>
