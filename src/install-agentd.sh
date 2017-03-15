@@ -43,11 +43,21 @@ create_file()
         -e "s|@PGDATABASE@|$PGDATABASE|g" \
         -e "s|@PGUSER@|$PGUSER|g" \
         -e "s|@PGPASSWORD@|$PGPASSWORD|g" \
+        -e "s|@ZABBIX_PREFIX@|$ZABBIX_PREFIX|g" \
         -e "s|@ZABBIX_CONFDIR@|$ZABBIX_CONFDIR|g" \
         -e "s|@ZABBIX_EXTSCRIPTDIR@|$ZABBIX_EXTSCRIPTDIR|g" \
         -e "s|@ZABBIX_SYSLOG_FACILITY@|$ZABBIX_SYSLOG_FACILITY|g" \
         "$1.in" > "$1"
 }
+
+#
+# Is $ZABBIX_PREFIX setting correct?
+#
+if [ ! -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" ]; then
+  echo >&2 "ERROR: ${ZABBIX_PREFIX}/sbin/zabbix_agent does not exist"
+  echo >&2 "ERROR: check ZABBIX_PREFIX setting in install.conf"
+  exit 1
+fi
 
 #
 # Get parameters for accessing PostgreSQL.
