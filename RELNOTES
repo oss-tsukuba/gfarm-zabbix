@@ -1,13 +1,28 @@
+Release note for Gfarm Zabbix plugin 4.1
+========================================
+
+[not-released-yet]
+
+New feature
+* rename existing "PostgreSQL server is not running" trigger to
+  "PostgreSQL server access is timed out", because this may be triggerd
+  by slow response of the PostgreSQL daemon.
+  add new "PostgreSQL server is not running" trigger which checks
+  existence of the PostgreSQL daemon process.
+  NOTE: this requires update of /etc/sudoers and new configuration
+  parameters in install.conf. [SF.net #999]
+
 Release note for Gfarm Zabbix plugin 4.0.1
 ==========================================
 
 [2017.3.26]
 
-Updated feature
-* ZABBIX_PREFIX in install.conf used as the Zabbix installation path
+New feature
+* add ZABBIX_PREFIX configuration in install.conf to specify non-standard
+  Zabbix installation path [SF.net #989]
 
 Bug fix
-* gfarm_zabbix _alt templates do not work with zabbix-1.8
+* gfarm_zabbix _alt templates do not work with zabbix-1.8 [SF.net #988]
 
 Release note for Gfarm Zabbix plugin 4.0.0
 ==========================================

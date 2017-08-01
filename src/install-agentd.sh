@@ -38,6 +38,8 @@ create_file()
     [ -f "$1" ] && rm -f "$1"
     sed \
         -e "s|@GFARM_BINDIR@|$GFARM_BINDIR|g" \
+        -e "s|@GFMD_CONFIG_PREFIX@|$GFMD_CONFIG_PREFIX|g" \
+        -e "s|@POSTGRES_USER@|$POSTGRES_USER|g" \
         -e "s|@PGHOST@|$PGHOST|g" \
         -e "s|@PGPORT@|$PGPORT|g" \
         -e "s|@PGDATABASE@|$PGDATABASE|g" \
@@ -104,6 +106,7 @@ for I in \
     gfarm_gfmd_failover_common.pl \
     gfarm_gfmd_gfhost.sh \
     gfarm_gfmd_postgresql.sh \
+    gfarm_gfmd_postgresql_alive.sh \
     gfarm_gfsd_gfhost.sh \
     gfarm_gfsd_gfsched.sh \
     gfarm_represent_client_gfhost.sh \

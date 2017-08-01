@@ -35,10 +35,16 @@ export PGHOST PGPORT PGDATABASE PGUSER PGPASSWORD
 @GFARM_BINDIR@/gfservice-timeout $TIMEOUT \
     psql -t -w -f - -c "SELECT COUNT(*) FROM seqnum;" > /dev/null 2>&1
 PSQL_EXITCODE=$?
-if [ $PSQL_EXITCODE -ne 0 ]; then
-    echo "not running"
-    exit 0
-fi
 
-echo "ok"
+case $PSQL_EXITCODE in
+0)
+    echo "ok"
+    ;;
+$TIMEOUT_EXITCODE)
+    echo "timed out"
+    ;;
+*)
+    echo "failed to access"
+    ;;
+esac
 exit 0
