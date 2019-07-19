@@ -115,6 +115,20 @@ sub log_notice ($;@) {
 }
 
 #
+# Output a warning message.
+#
+sub log_warning ($;@) {
+    my $message = shift;
+
+    if (LOG_LEVELS->{'warning'} >= $stderr_log_level) {
+	printf(STDERR "%s: warning: $message\n", PROGRAM, @_);
+    }
+    if (LOG_LEVELS->{'warning'} >= $syslog_log_level) {
+        syslog(LOG_WARNING, $message, @_);
+    }
+}
+
+#
 # Output an error message, then exit.
 #
 sub log_err ($;@) {

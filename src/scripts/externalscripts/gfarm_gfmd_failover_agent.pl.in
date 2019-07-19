@@ -7,6 +7,7 @@
 #
 
 use File::Basename;
+use File::Copy q(:copy);
 use Fcntl q(:flock);
 use IO::File;
 use IPC::Open3;
@@ -21,6 +22,7 @@ use constant PROGRAM => 'gfarm_gfmd_failover_agent.pl';
 # Command modes.
 use constant MODE_STATUS  => 0;
 use constant MODE_PROMOTE => 1;
+use constant MODE_BACKUP_JOURNAL => 2;
 
 # Path to 'netstat' command.
 use constant NETSTAT_COMMAND => '/bin/netstat';
@@ -309,6 +311,23 @@ sub get_gfmd_max_seqno ($$) {
 }
 
 #
+# backup $journal_file
+#
+sub basckup_journal (*) {
+    my ($journal_file) = @_;
+
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
+    my $backup_file = sprintf("%s.%04d%02d%02d_%02d%02d%02d",
+	$journal_file, $year + 1900, $mon, $mday, $hour, $min, $sec);
+
+    log_debug('begin backup_journal: journal_file=%s', $journal_file);
+    my $result = copy($journal_file, $backup_file);
+    log_debug('end backup_journal: journal_file=%s', $journal_file);
+    return $result;
+
+}
+
+#
 # Promote gfmd.
 #
 sub promote_gfmd ($$$) {
@@ -356,6 +375,8 @@ foreach my $arg (@ARGV) {
         $listen_port = $1;
     } elsif ($arg =~ /^syslog_facility=(.*)$/) {
         $syslog_facility = $1;
+    } elsif ($arg =~ /^backup_journal$/) {
+        $mode = MODE_BACKUP_JOURNAL;
     } elsif ($arg =~ /^promote$/) {
         $mode = MODE_PROMOTE;
     } elsif ($arg =~ /^debug$/) {
@@ -386,6 +407,12 @@ if ($mode == MODE_STATUS) {
     printf("is_running=%d is_listening=%d max_seqno=%d\n",
            $is_running, $is_listening, $max_seqno);
     exit(0);
+} elsif ($mode == MODE_BACKUP_JOURNAL) {
+    if (backup_journal($gfjournal, $journal_file)) {
+	exit(0);
+    } else {
+	exit(1);
+    }
 } else {
     my $gfmd_pid = read_gfmd_pid_file($pid_file);
     exit(1) if ($gfmd_pid <= 0);
