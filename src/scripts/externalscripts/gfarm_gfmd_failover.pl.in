@@ -316,6 +316,11 @@ sub get_gfmds_status (*$) {
                     log_notice('receive a response: gfmd=%s, line="%s"',
                                get_gfmd_label($conf, $id), $line);
                     parse_agent_response($conf, $gfmds, $id, $line);
+                    if ($gfmds->{$id}->{'max_seqno'} <= 0) {
+                        $gfmds->{$id}->{'error'} = 1;
+                        log_debug('cannot get max_seqno: gfmd=%s',
+                                  get_gfmd_label($conf, $id));
+                    }
                     $whs->{$id}->close();
                     $rhs->{$id}->close();
                     delete($whs->{$id});
