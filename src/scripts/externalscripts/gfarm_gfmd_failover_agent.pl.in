@@ -7,7 +7,7 @@
 #
 
 use File::Basename;
-use File::Copy q(:copy);
+use File::Copy q(copy);
 use Fcntl q(:flock);
 use IO::File;
 use IPC::Open3;
@@ -313,7 +313,7 @@ sub get_gfmd_max_seqno ($$) {
 #
 # backup $journal_file
 #
-sub basckup_journal (*) {
+sub backup_journal ($) {
     my ($journal_file) = @_;
 
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
@@ -323,8 +323,14 @@ sub basckup_journal (*) {
     log_debug('begin backup_journal: journal_file=%s', $journal_file);
     my $result = copy($journal_file, $backup_file);
     log_debug('end backup_journal: journal_file=%s', $journal_file);
-    return $result;
 
+    if ($result) {
+        print("complete\n");
+    } else {
+        log_warning('failed to copy %s to %s: %s',
+		    $journal_file, $backup_file, $!);
+    }
+    return $result;
 }
 
 #
@@ -408,7 +414,7 @@ if ($mode == MODE_STATUS) {
            $is_running, $is_listening, $max_seqno);
     exit(0);
 } elsif ($mode == MODE_BACKUP_JOURNAL) {
-    if (backup_journal($gfjournal, $journal_file)) {
+    if (backup_journal($journal_file)) {
 	exit(0);
     } else {
 	exit(1);

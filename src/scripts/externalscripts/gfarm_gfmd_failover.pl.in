@@ -405,7 +405,7 @@ sub run_command (*) {
 #
 # invoke agent operation $op
 #
-sub invoke_agent {
+sub invoke_agent (**$$$) {
     my ($conf, $gfmds, $id, $limit_time, $op) = @_;
 
     log_debug('begin: gfmd=%s, op=%s', $id, $op);
@@ -634,6 +634,7 @@ if ($allow_inconsistent_failover !~ /^(true|yes)$/i && $becomes_inconsistent) {
     $limit_time = get_limit_time(get_configuration($conf, $global_id,
                                                    'promotion_timeout'));
     my $new_master_id = determine_new_master_gfmd($conf, $gfmds);
+    my $do_failover = 1;
     if (!defined($new_master_id)) {
 	log_notice('no master gfmd candidate');
 	print("no master gfmd candidate\n") if ($dry_run);
@@ -646,14 +647,19 @@ if ($allow_inconsistent_failover !~ /^(true|yes)$/i && $becomes_inconsistent) {
 		$check_command_to_allow_inconsistent_failover);
     } else {
         if ($becomes_inconsistent) {
-            backup_journal($conf, $gfmds, $new_master_id, $limit_time);
+            if (!backup_journal($conf, $gfmds, $new_master_id, $limit_time)) {
+                $do_failover = 0;
+                log_err('copyinbg journal failed at inconsistent failover ');
+            }
         }
-	failover_gfmd($conf, $gfmds, $new_master_id, $limit_time);
-	if ($becomes_inconsistent &&
-	    $hook_command_after_inconsistent_failover ne '') {
-	    log_notice('running hook for inconsistent failover: %s',
-		       $hook_command_after_inconsistent_failover);
-	    run_command($hook_command_after_inconsistent_failover);
+	if ($do_failover) {
+	    failover_gfmd($conf, $gfmds, $new_master_id, $limit_time);
+	    if ($becomes_inconsistent &&
+		$hook_command_after_inconsistent_failover ne '') {
+		log_notice('running hook for inconsistent failover: %s',
+			   $hook_command_after_inconsistent_failover);
+		run_command($hook_command_after_inconsistent_failover);
+	    }
         }
     }
 }
