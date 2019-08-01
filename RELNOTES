@@ -11,6 +11,16 @@ New feature
   existence of the PostgreSQL daemon process.
   NOTE: this requires update of /etc/sudoers and new configuration
   parameters in install.conf. [SF.net #999]
+* add new directive 'failover_type'.  if this value is 'availability',
+  failover script performs promotion even if a sequence number of
+  gfmd journal file on a metadata server cannot be acquired.
+  see zabbix_install_manual for detail.
+  default failover_type is consistency. 
+ [SF.net #1071]
+
+Bug fix
+* if sshd on a metadata server is down (but the host itself is up),
+  failover script incorrectly performs promotion [SF.net #1070]
 
 Release note for Gfarm Zabbix plugin 4.0.1
 ==========================================
