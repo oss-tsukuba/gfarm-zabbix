@@ -73,7 +73,7 @@ my %conf_defaults =
 #
 # Get a configuration value of $key in the section $id.
 #
-sub get_configuration (*$$) {
+sub get_configuration (%$$) {
     my ($conf, $id, $key) = @_;
 
     my $value = $key;
@@ -136,7 +136,7 @@ sub read_configuration_file ($) {
 #
 # Return a list of section IDs in '$conf'.
 #
-sub section_keys (*) {
+sub section_keys (%) {
     my ($conf) = @_;
 
     my @result = ();
@@ -151,7 +151,7 @@ sub section_keys (*) {
 #
 # Get a gfmd label "ID (HOST:PORT)", used for log messages.
 #
-sub get_gfmd_label (*$) {
+sub get_gfmd_label (%$) {
     my ($conf, $id) = @_;
 
     return sprintf("%s (%s:%s)", $id,
@@ -163,7 +163,7 @@ sub get_gfmd_label (*$) {
 # Get a command line which executes the agent program on the specified
 # gfmd host like ('ssh', 'HOST' ,'sudo', '/bin/gfarm_gfmd_failover_agent.pl').
 #
-sub get_agent_command_line (*$) {
+sub get_agent_command_line (%$) {
     my ($conf, $id) = @_;
 
     my @ssh = split(/\s+/, get_configuration($conf, $id, 'ssh'));
@@ -219,7 +219,7 @@ sub create_gfmd_entries ($) {
 #
 # Return 1 if a master gfmd is running.
 #
-sub master_gfmd_is_running (*) {
+sub master_gfmd_is_running (%) {
     my ($gfmds) = @_;
 
     foreach my $id (keys(%$gfmds)) {
@@ -232,7 +232,7 @@ sub master_gfmd_is_running (*) {
 #
 # Return 1 if one or more errored gfmds exist.
 #
-sub errored_gfmd (*) {
+sub errored_gfmd (%) {
     my ($gfmds) = @_;
 
     foreach my $id (keys(%$gfmds)) {
@@ -245,7 +245,7 @@ sub errored_gfmd (*) {
 #
 # Parse a response from 'gfarm_gfmd_failover_agent.pl'.
 #
-sub parse_agent_response (**$$) {
+sub parse_agent_response (%%$$) {
     my ($conf, $gfmds, $id, $line) = @_;
 
     log_debug('begin: gfmd=%s, line="%s"', $id, $line);
@@ -275,7 +275,7 @@ sub parse_agent_response (**$$) {
 #
 # Get status of all gfmd servers.
 #
-sub get_gfmds_status (*$) {
+sub get_gfmds_status (%$) {
     my ($conf, $limit_time) = @_;
 
     log_debug('begin');
@@ -354,7 +354,7 @@ sub get_gfmds_status (*$) {
 #
 # Determine which gfmd server should become a master.
 #
-sub determine_new_master_gfmd (**) {
+sub determine_new_master_gfmd (%%) {
     my ($conf, $gfmds) = @_;
 
     log_debug('begin');
@@ -392,7 +392,7 @@ sub determine_new_master_gfmd (**) {
 #
 # invoke shell command
 #
-sub run_command (*) {
+sub run_command ($) {
     my ($command) = @_;
 
     log_notice('running command: "%s"', $command);
@@ -405,7 +405,7 @@ sub run_command (*) {
 #
 # invoke agent operation $op
 #
-sub invoke_agent (**$$$) {
+sub invoke_agent (%%$$$) {
     my ($conf, $gfmds, $id, $limit_time, $op) = @_;
 
     log_debug('begin: gfmd=%s, op=%s', $id, $op);
@@ -462,7 +462,7 @@ sub invoke_agent (**$$$) {
 #
 # backup the journal file, if this failover may cause metadata inconsistency
 #
-sub backup_journal (**$$) {
+sub backup_journal (%%$$) {
     my ($conf, $gfmds, $id, $limit_time) = @_;
 
     return invoke_agent($conf, $gfmds, $id, $limit_time, 'backup_journal');
@@ -471,7 +471,7 @@ sub backup_journal (**$$) {
 #
 # Promote a slave gfmd to a master.
 #
-sub failover_gfmd (**$$) {
+sub failover_gfmd (%%$$) {
     my ($conf, $gfmds, $id, $limit_time) = @_;
 
     return invoke_agent($conf, $gfmds, $id, $limit_time, 'promote');
@@ -480,7 +480,7 @@ sub failover_gfmd (**$$) {
 #
 # Print status of all gfmd servers.
 #
-sub print_all_gfmsds_status (**) {
+sub print_all_gfmsds_status (%%) {
     my ($conf, $gfmds) = @_;
 
     log_debug('begin');
@@ -547,7 +547,7 @@ sub parse_command_arguments () {
 #
 # Initialization.
 #
-sub initialize (*) {
+sub initialize (%) {
     my ($conf) = @_;
 
     my $log_to_syslog = get_configuration($conf, $global_id, 'log_to_syslog');
@@ -577,7 +577,7 @@ sub initialize (*) {
 #
 # Finalization.
 #
-sub finalize (*) {
+sub finalize (%) {
     my ($conf) = @_;
 
     log_notice('end');
