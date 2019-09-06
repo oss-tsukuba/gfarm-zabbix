@@ -21,6 +21,8 @@ New feature
 Bug fix
 * if sshd on a metadata server is down (but the host itself is up),
   failover script incorrectly performs promotion [SF.net #1070]
+* the meaning of 'log_to_syslog' setting in failover script
+  had been incorrectly reversed since gfarm_zabbix-2.2.0 [SF.net #1077]
 
 Release note for Gfarm Zabbix plugin 4.0.1
 ==========================================
