@@ -565,7 +565,7 @@ sub initialize (%) {
     } else {
         $stderr_level = 'never';
     }
-    if ($log_to_syslog !~ /^(true|yes)$/i) {
+    if ($log_to_syslog =~ /^(true|yes)$/i) {
         $syslog_level = 'notice';
     } else {
         $syslog_level = 'never';
