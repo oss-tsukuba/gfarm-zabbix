@@ -390,12 +390,15 @@ sub determine_new_master_gfmd (%%) {
 }
 
 #
-# invoke shell command
+# invoke shell to run hook
 #
-sub run_command ($) {
-    my ($command) = @_;
+sub run_hook (%$$$) {
+    my ($conf, $id, $command, $command_label) = @_;
+    my $new_master_host = get_configuration($conf, $id, 'host');
 
-    log_notice('running command: "%s"', $command);
+    $command = $command . ' ' . $new_master_host;
+    log_notice('running %s (%s) to switch to %s',
+	$command_label, $command, $new_master_host);
     my $result = system($command);
     log_notice('command "%s" finished: %d', $command, $result);
 	
@@ -639,14 +642,15 @@ if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
 	printf("suitable candidate for master gfmd is %s\n",
 	       get_gfmd_label($conf, $new_master_id));
     } elsif ($becomes_inconsistent &&
-	     run_command($hook_to_prepare_for_failover) != 0) {
+	     run_hook($conf, $new_master_id, $hook_to_prepare_for_failover,
+	     'hook_to_prepare_for_failover') != 0) {
 	log_err('inconsistent failover is not allowed by command "%s"',
 		$hook_to_prepare_for_failover);
     } else {
         if ($becomes_inconsistent) {
             if (!backup_journal($conf, $gfmds, $new_master_id, $limit_time)) {
                 $do_failover = 0;
-                log_err('copyinbg journal failed at inconsistent failover ');
+                log_err('failed to copy journal at inconsistent failover ');
             }
         }
 	if ($do_failover) {
@@ -654,7 +658,8 @@ if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
 	    if ($becomes_inconsistent && $hook_after_failover ne '') {
 		log_notice('running hook for inconsistent failover: %s',
 			   $hook_after_failover);
-		run_command($hook_after_failover);
+		run_hook($conf, $new_master_id, $hook_after_failover,
+		    'hook_after_failover');
 	    }
         }
     }
