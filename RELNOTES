@@ -23,6 +23,8 @@ Bug fix
   failover script incorrectly performs promotion [SF.net #1070]
 * the meaning of 'log_to_syslog' setting in failover script
   had been incorrectly reversed since gfarm_zabbix-2.2.0 [SF.net #1077]
+* permissible time difference in Template Gfarm linux is changed
+  from 5 minutes to 30 seconds [SF.net #1078]
 
 Release note for Gfarm Zabbix plugin 4.0.1
 ==========================================

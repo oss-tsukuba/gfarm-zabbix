@@ -1157,7 +1157,7 @@
           <name>{$NODATA_TIMEOUT}</name>
         </macro>
         <macro>
-          <value>5m</value>
+          <value>30</value>
           <name>{$TIME_DIFF_THRESHOLD}</name>
         </macro>
       </macros>
