@@ -392,15 +392,24 @@ sub determine_new_master_gfmd (%%) {
 #
 # invoke shell to run hook
 #
-sub run_hook (%$$$) {
-    my ($conf, $id, $command, $command_label) = @_;
-    my $new_master_host = get_configuration($conf, $id, 'host');
+sub run_hook (%%$$$) {
+    my ($conf, $gfmds, $new_master_id, $command, $command_label) = @_;
 
+    my $new_master_host = get_configuration($conf, $new_master_id, 'host');
     $command = $command . ' ' . $new_master_host;
+
+    foreach my $id (section_keys($conf)) {
+	if ($gfmds->{$id}->{'error'} || !$gfmds->{$id}->{'is_running'}) {
+	    my $down_host = get_configuration($conf, $id, 'host');
+	    $command = $command . ' ' . $down_host;
+	}
+    }
+
     log_notice('running %s (%s) to switch to %s',
 	$command_label, $command, $new_master_host);
     my $result = system($command);
-    log_notice('command "%s" finished: %d', $command, $result);
+    log_notice('command %s (%s) finished: %d',
+	       $command_label, $command, $result);
 	
     return $result;
 }
@@ -623,12 +632,13 @@ if ($verbose >= VERBOSE_FULL || $dry_run) {
     print_all_gfmds_status($conf, $gfmds)
 }
 if (master_gfmd_is_running($gfmds)) {
+    log_notice('master gfmd is running');
     print("master gfmd is running\n") if ($dry_run);
     exit(0);
 }
 my $becomes_inconsistent = errored_gfmd($gfmds);
 if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
-    log_notice('an error occurred, give up failover');
+    log_notice('an error occurred, no master candidate, give up failover');
     printf("an error occurred, no master gfmd candidate\n") if ($dry_run);
 } else {
     $limit_time = get_limit_time(get_configuration($conf, $global_id,
@@ -642,23 +652,23 @@ if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
 	printf("suitable candidate for master gfmd is %s\n",
 	       get_gfmd_label($conf, $new_master_id));
     } elsif ($becomes_inconsistent &&
-	     run_hook($conf, $new_master_id, $hook_to_prepare_for_failover,
-	     'hook_to_prepare_for_failover') != 0) {
+	     run_hook($conf, $gfmds, $new_master_id,
+	     $hook_to_prepare_for_failover, 'hook_to_prepare_for_failover')
+	     != 0) {
 	log_err('inconsistent failover is not allowed by command "%s"',
 		$hook_to_prepare_for_failover);
     } else {
         if ($becomes_inconsistent) {
             if (!backup_journal($conf, $gfmds, $new_master_id, $limit_time)) {
                 $do_failover = 0;
-                log_err('failed to copy journal at inconsistent failover ');
+                log_err('inconsistent failover is not allowed ' .
+			'due to a failure of backup_journal');
             }
         }
 	if ($do_failover) {
 	    failover_gfmd($conf, $gfmds, $new_master_id, $limit_time);
 	    if ($becomes_inconsistent && $hook_after_failover ne '') {
-		log_notice('running hook for inconsistent failover: %s',
-			   $hook_after_failover);
-		run_hook($conf, $new_master_id, $hook_after_failover,
+		run_hook($conf, $gfmds, $new_master_id, $hook_after_failover,
 		    'hook_after_failover');
 	    }
         }
