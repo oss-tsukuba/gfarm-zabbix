@@ -483,7 +483,7 @@ sub failover_gfmd (%%$$) {
 #
 # Print status of all gfmd servers.
 #
-sub print_all_gfmsds_status (%%) {
+sub print_all_gfmds_status (%%) {
     my ($conf, $gfmds) = @_;
 
     log_debug('begin');
@@ -620,7 +620,7 @@ my $limit_time = get_limit_time(get_configuration($conf, $global_id,
                                                   'inspection_timeout'));
 my $gfmds = get_gfmds_status($conf, $limit_time);
 if ($verbose >= VERBOSE_FULL || $dry_run) {
-    print_all_gfmsds_status($conf, $gfmds)
+    print_all_gfmds_status($conf, $gfmds)
 }
 if (master_gfmd_is_running($gfmds)) {
     print("master gfmd is running\n") if ($dry_run);
