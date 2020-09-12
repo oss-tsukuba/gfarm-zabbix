@@ -57,6 +57,8 @@ my %conf_defaults =
      'failover_type'       => 'consistency',
      'hook_to_prepare_for_failover' => 'true',	# only for incosistent failover
      'hook_after_failover' => '',		# only for incosistent failover
+     'read_only_failover_config' => 'read_only enable', # for incosistent
+     'read_write_failover_config' => '',	# only for cosistent failover
 
      'log_to_syslog'       => 'true',
      'syslog_facility'     => 'user',
@@ -67,6 +69,7 @@ my %conf_defaults =
      'gfarm_sbindir'       => '/usr/local/sbin',
      'zabbix_extscriptdir' => '@ZABBIX_EXTSCRIPTDIR@',
      'gfmd_journal_file'   => '/var/gfarm-metadata/journal/0000000000.gmj',
+     'gfmd_failover_agent_conf_file' => '/etc/gfmd.failover.agent.conf',
      'gfmd_listen_address' => '0.0.0.0',
      'gfmd_listen_port'    => '601');
 
@@ -178,6 +181,8 @@ sub get_agent_command_line (%$) {
         = get_configuration($conf, $id, 'gfarm_bindir');
     my $gfmd_journal_file
         = get_configuration($conf, $id, 'gfmd_journal_file');
+    my $gfmd_failover_agent_conf_file
+        = get_configuration($conf, $id, 'gfmd_failover_agent_conf_file');
     my $gfmd_listen_address
         = get_configuration($conf, $id, 'gfmd_listen_address');
     my $gfmd_listen_port
@@ -190,6 +195,7 @@ sub get_agent_command_line (%$) {
             "gfmd_pid_file=$gfmd_pid_file",
             "gfarm_bindir=$gfarm_bindir",
             "gfmd_journal_file=$gfmd_journal_file",
+            "gfmd_failover_agent_conf_file=$gfmd_failover_agent_conf_file",
             "gfmd_listen_address=$gfmd_listen_address",
             "gfmd_listen_port=$gfmd_listen_port",
             "syslog_facility=$syslog_facility");
@@ -390,7 +396,7 @@ sub determine_new_master_gfmd (%%) {
 }
 
 #
-# invoke shell to run hook
+# invoke local shell to run hook
 #
 sub run_hook (%%$$$) {
     my ($conf, $gfmds, $new_master_id, $command, $command_label) = @_;
@@ -420,7 +426,7 @@ sub run_hook (%%$$$) {
 sub invoke_agent (%%$$$) {
     my ($conf, $gfmds, $id, $limit_time, $op) = @_;
 
-    log_debug('begin: gfmd=%s, op=%s', $id, $op);
+    log_debug('begin: gfmd=%s, op="%s"', $id, $op);
 
     my ($pid, $wh, $rh);
     my @command = get_agent_command_line($conf, $id);
@@ -430,7 +436,8 @@ sub invoke_agent (%%$$$) {
         log_debug('execute: command=%s', join(' ', @command));
     };
 
-    log_notice('start agent: gfmd=%s op=%s', get_gfmd_label($conf, $id), $op);
+    log_notice('start agent: gfmd=%s op="%s"',
+	       get_gfmd_label($conf, $id), $op);
 
     my $result = 0;
     for (;;) {
@@ -449,7 +456,7 @@ sub invoke_agent (%%$$$) {
         my $line = <$rh>;
         last if (!defined($line));
         chomp($line);
-        log_notice('receive a response: gfmd=%s, op=%s, line="%s"',
+        log_notice('receive a response: gfmd=%s, op="%s", line="%s"',
                    get_gfmd_label($conf, $id), $op, $line);
         $result = 1 if ($line eq 'complete');
         last;
@@ -461,13 +468,13 @@ sub invoke_agent (%%$$$) {
     waitpid($pid, 0) if (defined($pid));
 
     if ($result) {
-        log_notice('end agent: gfmd=%s op=%s',
+        log_notice('end agent: gfmd=%s op="%s"',
 		   get_gfmd_label($conf, $id), $op);
     } else {
-        log_notice('agent failed: gfmd=%s, op=%s',
+        log_notice('agent failed: gfmd=%s, op="%s"',
 		   get_gfmd_label($conf, $id), $op);
     }
-    log_debug('end agent: op=%s, result=%d', $op, $result);
+    log_debug('end agent: op="%s", result=%d', $op, $result);
     return $result;
 }
 
@@ -478,6 +485,27 @@ sub backup_journal (%%$$) {
     my ($conf, $gfmds, $id, $limit_time) = @_;
 
     return invoke_agent($conf, $gfmds, $id, $limit_time, 'backup_journal');
+}
+
+#
+# update gfmd.failover.agent.conf
+#
+sub update_gfmd_failover_agent_conf(%%$$$) {
+    my ($conf, $gfmds, $id, $limit_time, $key) = @_;
+
+    my $config = get_configuration($conf, $new_master_id, $key);
+
+    # escape shell meta characters
+    my $confstr = $config;
+    $confstr =~ s/([^0-9a-z_])/\\$1/g;
+
+    my $result =
+	invoke_agent($conf, $gfmds, $id, $limit_time,
+		     'gfmd_failover_config=' . $confstr . ' ' .
+		     'update_gfmd_failover_agent_conf');
+
+    log_notice('replace gfmd.failover.agent.conf on ID:%s to "%s": %d',
+	       $id, $config, $result);
 }
 
 #
@@ -663,8 +691,20 @@ if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
                 $do_failover = 0;
                 log_err('inconsistent failover is not allowed ' .
 			'due to a failure of backup_journal');
-            }
-        }
+            } elsif (!update_gfmd_failover_agent_conf(
+			  $conf, $gfmds, $new_master_id, $limit_time,
+			  'read_only_failover_config')) {
+                $do_failover = 0;
+                log_err('inconsistent failover is not allowed, ' .
+			'because update of gfmd.failover.agent.conf failed');
+	    }
+        } elsif (!update_gfmd_failover_agent_conf(
+		      $conf, $gfmds, $new_master_id, $limit_time,
+		      'read_write_failover_config')) {
+	    $do_failover = 0;
+	    log_err('failover is not allowed, ' .
+		    'because update of gfmd.failover.agent.conf failed');
+	}
 	if ($do_failover) {
 	    failover_gfmd($conf, $gfmds, $new_master_id, $limit_time);
 	    if ($becomes_inconsistent && $hook_after_failover ne '') {

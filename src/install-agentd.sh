@@ -129,6 +129,33 @@ $INSTALL -c -m 0700 -o $ZABBIX_USER -g $ZABBIX_GROUP $SRCFILE $DSTFILE \
 echo "Install the file: $DSTFILE"
 
 #
+# sanity check about gfmd.failover.{,agent.}conf
+#
+if [ -f "$GFMD_CONF_FILE" ] &&
+   [ X"`get_gfmd_conf_value metadb_replication`" = X"enable" ]
+then
+    for I in \
+	"`dirname $GFMD_CONF_FILE`/gfmd.failover.conf" \
+	"`dirname $GFMD_CONF_FILE`/gfmd.failover.agent.conf"
+    do
+	if [ ! -f "$I" ]; then
+	    echo >&2 "WARNING: missing $I," \
+		"try config-gfarm-update --update"
+	fi
+    done
+    I="`dirname $GFMD_CONF_FILE`/gfmd.failover.conf"
+    if [ -f "$I" ]; then
+	if egrep '^[	 ]*include[ 	]+([^ 	#]*/)?gfmd\.failover\.agent\.conf([ 	#]|$)' "$I" >/dev/null
+	then
+	    : # OK
+	else
+	    echo >&2 "WARNING: missing 'include gfmd.failover.agent.conf'" \
+		"in $I, please add it"
+	fi
+    fi
+fi
+
+#
 # Delete or notify obsolete files.
 # 
 OBSOLETE_FILES=
