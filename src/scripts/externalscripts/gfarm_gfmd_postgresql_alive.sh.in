@@ -21,7 +21,9 @@ CONF_FILE=@ZABBIX_EXTSCRIPTDIR@/gfarm_conf.inc
 #
 # Set path of PID file.
 #
-PID_FILE=${GFMD_CONFIG_PREFIX}/var/gfarm-pgsql/postmaster.pid
+
+# POSTGRES_PID_FILE was not set in old version
+PID_FILE=${POSTGRES_PID_FILE:-"${GFMD_CONFIG_PREFIX}/var/gfarm-pgsql/postmaster.pid"}
 
 #
 # See PID_FILE and check whether the process exists

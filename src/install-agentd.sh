@@ -39,6 +39,7 @@ create_file()
     sed \
         -e "s|@GFARM_BINDIR@|$GFARM_BINDIR|g" \
         -e "s|@GFMD_CONFIG_PREFIX@|$GFMD_CONFIG_PREFIX|g" \
+        -e "s|@POSTGRES_PID_FILE@|$POSTGRES_PID_FILE|g" \
         -e "s|@POSTGRES_USER@|$POSTGRES_USER|g" \
         -e "s|@PGHOST@|$PGHOST|g" \
         -e "s|@PGPORT@|$PGPORT|g" \
