@@ -140,7 +140,8 @@ then
     do
 	if [ ! -f "$I" ]; then
 	    echo >&2 "WARNING: missing $I," \
-		"try config-gfarm-update --update"
+		"try config-gfarm-update --update," \
+		"otherwise failover_type=availabilty setting won't work"
 	fi
     done
     I="`dirname $GFMD_CONF_FILE`/gfmd.failover.conf"
@@ -150,7 +151,8 @@ then
 	    : # OK
 	else
 	    echo >&2 "WARNING: missing 'include gfmd.failover.agent.conf'" \
-		"in $I, please add it"
+		"in $I, please add it," \
+		"otherwise failover_type=availabilty setting won't work"
 	fi
     fi
 fi
