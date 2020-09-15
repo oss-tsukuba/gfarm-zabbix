@@ -55,6 +55,7 @@ my %conf_defaults =
      'lock_file'           => '/var/tmp/gfarm_gfmd_failover.lock',
 
      'failover_type'       => 'consistency',
+     'allow_inconsistency' => 'true',
      'hook_to_prepare_for_failover' => 'true',	# only for incosistent failover
      'hook_after_failover' => '',		# only for incosistent failover
      'read_only_failover_config' => 'read_only enable', # for incosistent
@@ -360,12 +361,14 @@ sub get_gfmds_status (%$) {
 #
 # Determine which gfmd server should become a master.
 #
-sub determine_new_master_gfmd (%%) {
-    my ($conf, $gfmds) = @_;
+sub determine_new_master_gfmd (%%$) {
+    my ($conf, $gfmds, $allow_inconsistency) = @_;
 
     log_debug('begin');
     my $latest_seqno = 1;
+    my $latest_seqno_from_running = 1;
     my $new_master_id;
+    my $new_master_id_candidate;
     my $new_master_index = int($gfmds) + 1;
 
     if (!master_gfmd_is_running($gfmds)) {
@@ -373,26 +376,38 @@ sub determine_new_master_gfmd (%%) {
 	    if ($gfmds->{$id}->{'max_seqno'} > $latest_seqno) {
 		$latest_seqno = $gfmds->{$id}->{'max_seqno'};
 	    }
+	    if ($gfmds->{$id}->{'max_seqno'} > $latest_seqno_from_running &&
+		$gfmds->{$id}->{'is_running'}) {
+		$latest_seqno_from_running = $gfmds->{$id}->{'max_seqno'};
+	    }
 	}
 
 	foreach my $id (keys(%$gfmds)) {
 	    next if (!$gfmds->{$id}->{'is_running'});
-	    if ($gfmds->{$id}->{'max_seqno'} == $latest_seqno &&
+	    if ($gfmds->{$id}->{'max_seqno'} == $latest_seqno_from_running &&
 		$gfmds->{$id}->{'index'} < $new_master_index) {
-		$new_master_id = $id;
+		$new_master_id_candidate = $id;
 		$new_master_index = $gfmds->{$id}->{'index'};
 	    }
 	}
     }
 
+    if ($latest_seqno_from_running == $latest_seqno || $allow_inconsistency) {
+	$new_master_id = $new_master_id_candidate;
+    }
+
     if (defined($new_master_id)) {
 	log_notice('choose new master gfmd: gfmd=%s',
 		   get_gfmd_label($conf, $new_master_id));
+	if ($latest_seqno_from_running != $latest_seqno) {
+	    log_notice('seqno of new master (%d) is older than latest (%d)',
+		       $latest_seqno_from_running, $latest_seqno);
+	}
     } else {
 	log_notice('no suitable slave for new master gfmd');
     }
     log_debug('end');
-    return $new_master_id;
+    return ($new_master_id, $latest_seqno_from_running != $latest_seqno);
 }
 
 #
@@ -649,6 +664,8 @@ my $conf = read_configuration_file($configuration_file);
 initialize($conf);
 
 my $failover_type = get_configuration($conf, $global_id, 'failover_type');
+my $allow_inconsistency =
+    get_configuration($conf, $global_id, 'allow_inconsistency');
 my $hook_to_prepare_for_failover =
 	get_configuration($conf, $global_id, 'hook_to_prepare_for_failover');
 my $hook_after_failover =
@@ -664,29 +681,39 @@ if (master_gfmd_is_running($gfmds)) {
     print("master gfmd is running\n") if ($dry_run);
     exit(0);
 }
-my $becomes_inconsistent = errored_gfmd($gfmds);
-if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
+
+my $may_become_inconsistent = errored_gfmd($gfmds);
+if ($failover_type !~ /^availability$/i && $may_become_inconsistent) {
     log_notice('an error occurred, no master candidate, give up failover');
     printf("an error occurred, no master gfmd candidate\n") if ($dry_run);
 } else {
-    $limit_time = get_limit_time(get_configuration($conf, $global_id,
-                                                   'promotion_timeout'));
-    my $new_master_id = determine_new_master_gfmd($conf, $gfmds);
-    my $do_failover = 1;
+    if ($may_become_inconsistent) {
+	log_notice('could not get seqno from some metadata servers');
+    }
+    $limit_time = get_limit_time(
+	get_configuration($conf, $global_id, 'promotion_timeout'));
+    my ($new_master_id, $must_become_inconsistent) = determine_new_master_gfmd(
+	$conf, $gfmds,
+	$failover_type =~ /^availability$/i &&
+	$allow_inconsistency =~ /^(true|yes)$/i);
+    $may_become_inconsistent ||= $must_become_inconsistent;
+
     if (!defined($new_master_id)) {
 	log_notice('no master gfmd candidate');
 	print("no master gfmd candidate\n") if ($dry_run);
     } elsif ($dry_run) {
 	printf("suitable candidate for master gfmd is %s\n",
 	       get_gfmd_label($conf, $new_master_id));
-    } elsif ($becomes_inconsistent &&
+    } elsif ($may_become_inconsistent &&
 	     run_hook($conf, $gfmds, $new_master_id,
 	     $hook_to_prepare_for_failover, 'hook_to_prepare_for_failover')
 	     != 0) {
 	log_err('inconsistent failover is not allowed by command "%s"',
 		$hook_to_prepare_for_failover);
     } else {
-        if ($becomes_inconsistent) {
+	my $do_failover = 1;
+
+        if ($may_become_inconsistent) {
             if (!backup_journal($conf, $gfmds, $new_master_id, $limit_time)) {
                 $do_failover = 0;
                 log_err('inconsistent failover is not allowed ' .
@@ -707,7 +734,7 @@ if ($failover_type !~ /^availability$/i && $becomes_inconsistent) {
 	}
 	if ($do_failover) {
 	    failover_gfmd($conf, $gfmds, $new_master_id, $limit_time);
-	    if ($becomes_inconsistent && $hook_after_failover ne '') {
+	    if ($may_become_inconsistent && $hook_after_failover ne '') {
 		run_hook($conf, $gfmds, $new_master_id, $hook_after_failover,
 		    'hook_after_failover');
 	    }
