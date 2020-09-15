@@ -1,3 +1,25 @@
+Release note for Gfarm Zabbix plugin 4.2
+========================================
+
+[not released yet]
+
+New feature
+* add new setting 'POSTGRES_PID_FILE' in install.conf,
+  pathname of PID file for the PostgreSQL daemon.
+  [GitHub oss-tsukuba/gfarm-zabbix#1]
+* make failover script utilize the gfmd read_only feature since gfarm-2.7.17.
+  this adds the following configuration directives to gfarm_gfmd_failover.conf:
+  - 'read_only_failover_config' specifies the setting which will be written
+    to gfmd.failover.agent.conf when split brain may happen.
+  - 'read_write_failover_config' specifies the setting which will be written
+    to gfmd.failover.agent.conf when split brain must not happen.
+  - 'allow_inconsistency' - if this is 'true' and failover_type is
+    'availability, failover is allowed even if there is newer metadata in
+    some metadata servers which are down.  the read_only_failover_config
+    setting will be written to gfmd.failover.config before the failover.
+  - 'gfmd_failover_agent_conf_file' - pathname of gfmd.failover.agent.conf
+ [GitHub oss-tsukuba/gfarm-zabbix#2]
+
 Release note for Gfarm Zabbix plugin 4.1
 ========================================
 
@@ -11,11 +33,12 @@ New feature
   existence of the PostgreSQL daemon process.
   NOTE: this requires update of /etc/sudoers and new configuration
   parameters in install.conf. [SF.net #999]
-* add new directive 'failover_type'.  if this value is 'availability',
-  failover script performs promotion even if a sequence number of
-  gfmd journal file on a metadata server cannot be acquired.
+* add new directive 'failover_type' in gfarm_gfmd_failover.conf.
+  if this value is 'availability', failover script performs promotion
+  even if a sequence number of gfmd journal file on a metadata server
+  cannot be acquired.
   see zabbix_install_manual for detail.
-  default failover_type is consistency. [SF.net #1071]
+  default failover_type is 'consistency'. [SF.net #1071]
 
 Bug fix
 * if sshd on a metadata server is down (but the host itself is up),
