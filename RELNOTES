@@ -1,7 +1,7 @@
 Release note for Gfarm Zabbix plugin 4.2
 ========================================
 
-[not released yet]
+[2020.9.17]
 
 New feature
 * add new setting 'POSTGRES_PID_FILE' in install.conf,
