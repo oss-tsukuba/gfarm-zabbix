@@ -56,7 +56,8 @@ create_file()
 #
 # Is $ZABBIX_PREFIX setting correct?
 #
-if [ ! -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" ]; then
+if [ ! -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" -a \
+     ! -x "${ZABBIX_PREFIX}/sbin/zabbix_agentd" ]; then
   echo >&2 "ERROR: ${ZABBIX_PREFIX}/sbin/zabbix_agent does not exist"
   echo >&2 "ERROR: check ZABBIX_PREFIX setting in install.conf"
   exit 1
