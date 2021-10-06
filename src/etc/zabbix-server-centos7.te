@@ -1,0 +1,12 @@
+module zabbix-server-centos7 1.0;
+
+require {
+        type zabbix_var_run_t;
+        type zabbix_t;
+        class unix_stream_socket connectto;
+        class sock_file { create unlink };
+}
+
+#============= zabbix_t ==============
+allow zabbix_t self:unix_stream_socket connectto;
+allow zabbix_t zabbix_var_run_t:sock_file { create unlink };
