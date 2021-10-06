@@ -59,7 +59,6 @@
           <snmpv3_securitylevel>0</snmpv3_securitylevel>
           <snmpv3_authpassphrase></snmpv3_authpassphrase>
           <snmpv3_privpassphrase></snmpv3_privpassphrase>
-          <valuemapid>0</valuemapid>
           <applications>
             <application>Gfarm gfmd linux alternative</application>
           </applications>
