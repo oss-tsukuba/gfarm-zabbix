@@ -1,26 +1,26 @@
 module zabbix-agent-gfarm-centos7 1.0;
 
 require {
-        type devlog_t;
+	type devlog_t;
 	type etc_t;
 	type hi_reserved_port_t;
 	type initctl_t;
-        type kernel_t;
-        type nfs_t;
+	type kernel_t;
+	type nfs_t;
 	type proc_kcore_t;
 	type rpm_exec_t;
-        type ssh_exec_t;
-        type sudo_exec_t;
-        type tmp_t;
+	type ssh_exec_t;
+	type sudo_exec_t;
+	type tmp_t;
 	type unconfined_t;
 	type unlabeled_t;
 	type unreserved_port_t;
 	type user_tmp_t;
-        type zabbix_agent_t;
+	type zabbix_agent_t;
 	class capability { audit_write sys_resource };
 	class dir { read write getattr add_name remove_name search open };
 	class fifo_file getattr;
-        class file { read write getattr setattr create unlink lock open execute execute_no_trans };
+	class file { read write getattr setattr create unlink lock open execute execute_no_trans };
 	class netlink_audit_socket { create read write nlmsg_relay };
 	class sock_file { write getattr };
 	class tcp_socket { name_connect read write getopt setopt shutdown };
