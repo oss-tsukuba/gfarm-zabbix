@@ -55,11 +55,11 @@ my %conf_defaults =
      'lock_file'           => '/var/tmp/gfarm_gfmd_failover.lock',
 
      'failover_type'       => 'consistency',
-     'allow_inconsistency' => 'true',
-     'hook_to_prepare_for_failover' => 'true',	# only for incosistent failover
-     'hook_after_failover' => '',		# only for incosistent failover
-     'read_only_failover_config' => 'read_only enable', # for incosistent
-     'read_write_failover_config' => '',	# only for cosistent failover
+     'allow_inconsistency' => 'true',		# only for type=availability
+     'hook_to_prepare_for_failover' => 'true',	# only for type=availability
+     'hook_after_failover' => '',		# only for type=availability
+     'read_only_failover_config' => 'read_only enable', # for inconsistent case
+     'read_write_failover_config' => 'read_only disable', # for consistent case
 
      'log_to_syslog'       => 'true',
      'syslog_facility'     => 'user',
@@ -664,6 +664,12 @@ my $conf = read_configuration_file($configuration_file);
 initialize($conf);
 
 my $failover_type = get_configuration($conf, $global_id, 'failover_type');
+if ($failover_type !~ /^consistency$/ && $failover_type !~ /^availability$/i) {
+    log_notice('incorrect failover_type: "%s"', $failover_type);
+    print STDERR "incorrect failover_type: \"$failover_type\"\n";
+    exit(2);
+}
+
 my $allow_inconsistency =
     get_configuration($conf, $global_id, 'allow_inconsistency');
 my $hook_to_prepare_for_failover =
@@ -672,6 +678,7 @@ my $hook_after_failover =
 	get_configuration($conf, $global_id, 'hook_after_failover');
 my $limit_time = get_limit_time(get_configuration($conf, $global_id,
                                                   'inspection_timeout'));
+
 my $gfmds = get_gfmds_status($conf, $limit_time);
 if ($verbose >= VERBOSE_FULL || $dry_run) {
     print_all_gfmds_status($conf, $gfmds)
