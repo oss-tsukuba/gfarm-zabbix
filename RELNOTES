@@ -6,6 +6,12 @@ Release note for Gfarm Zabbix plugin 4.3
 New feature
 * support Zabbix 5.0 LTS on CentOS 7
 
+Updated feature
+* default value of read_write_failover_config is changed from ''
+  to 'read_only disable'. As the result, if newest metadata is availabe
+  in a slave gfmd, the filesystem will become writable by default
+  after failover.
+
 Release note for Gfarm Zabbix plugin 4.2
 ========================================
 
