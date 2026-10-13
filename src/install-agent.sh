@@ -8,18 +8,16 @@
 # install(1) command.
 INSTALL=install
 
-: ${ZABBIX_EXTSCRIPTDIR:=/etc/zabbix/externalscripts}
-
 # Auto-detect the Zabbix agent executable and
 # its user configuration directory if not specified.
 if [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent2" ]; then
-    : ${ZABBIX_AGENTD_CONFSUBDIR:=/etc/zabbix/zabbix_agent2.d}
+    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agent2.d}
     : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent2"}
 elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agentd" ]; then
-    : ${ZABBIX_AGENTD_CONFSUBDIR:=/etc/zabbix/zabbix_agentd.d}
+    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
     : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agentd"}
 elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" ]; then
-    : ${ZABBIX_AGENTD_CONFSUBDIR:=/etc/zabbix/zabbix_agentd.d}
+    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
     : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent"}
 else
     echo >&2 \
@@ -64,6 +62,7 @@ create_file()
         -e "s|@ZABBIX_AGENT_BIN@|$ZABBIX_AGENT_BIN|g" \
         -e "s|@ZABBIX_HOMEDIR@|$ZABBIX_HOMEDIR|g" \
         -e "s|@ZABBIX_EXTSCRIPTDIR@|$ZABBIX_EXTSCRIPTDIR|g" \
+        -e "s|@ZABBIX_GFARM_CONFDIR@|$ZABBIX_GFARM_CONFDIR|g" \
         -e "s|@ZABBIX_SYSLOG_FACILITY@|$ZABBIX_SYSLOG_FACILITY|g" \
         "$1.in" > "$1"
 }
@@ -78,13 +77,13 @@ PGUSER="`get_gfmd_conf_value postgresql_user`"
 PGPASSWORD="`get_gfmd_conf_value postgresql_password`"
 
 #
-# Install files in 'scripts/zabbix_agentd.d/' to
-# $ZABBIX_AGENTD_CONFSUBDIR.
+# Install files in 'scripts/zabbix_agent.d/' to
+# $ZABBIX_AGENT_CONFDIR.
 #
 for I in \
     userparameter_gfarm.conf; do
-    SRCFILE=scripts/zabbix_agentd.d/$I
-    DSTFILE=$ZABBIX_AGENTD_CONFSUBDIR/$I
+    SRCFILE=scripts/zabbix_agent.d/$I
+    DSTFILE=$ZABBIX_AGENT_CONFDIR/$I
     create_file $SRCFILE
     $INSTALL -c -m 0755 -o root -g root $SRCFILE $DSTFILE \
         || { echo "Failed to install the file: $DSTFILE"; exit 1; }
@@ -128,8 +127,13 @@ for I in \
     echo "Install the file: $DSTFILE"
 done
 
+DIR=$ZABBIX_GFARM_CONFDIR
+if [ ! -d $DIR ]; then
+    $INSTALL -d -m 0755 -o root -g root $DIR \
+        || { echo "Failed to create the directory: $DIR"; exit 1; }
+fi
 SRCFILE=scripts/externalscripts/gfarm_conf.inc
-DSTFILE=$ZABBIX_EXTSCRIPTDIR/gfarm_conf.inc
+DSTFILE=$ZABBIX_GFARM_CONFDIR/gfarm_conf.inc
 create_file $SRCFILE
 $INSTALL -c -m 0700 -o $ZABBIX_USER -g $ZABBIX_GROUP $SRCFILE $DSTFILE \
     || { echo "Failed to install the file: $DSTFILE"; exit 1; }
@@ -190,8 +194,8 @@ done
 
 for I in \
     $ZABBIX_EXTSCRIPTDIR/zbx_chk_gfarm.conf \
-    $ZABBIX_AGENTD_CONFSUBDIR/userparameter_postgresql.conf \
-    $ZABBIX_AGENTD_CONFSUBDIR/userparameter_redundant_gfarm.conf; do
+    $ZABBIX_AGENT_CONFDIR/userparameter_postgresql.conf \
+    $ZABBIX_AGENT_CONFDIR/userparameter_redundant_gfarm.conf; do
     if [ -f $I ]; then
         echo "The following file is not used any longer:"
         echo "    $I"

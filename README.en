@@ -8,9 +8,8 @@ src/failure_test_scripts.
 
 * File and directory structures
 
-    doc/                        : documents
-    src/                        : source code
-       editor/                  : scripts to edit Gfarm configuration file
-       scripts/                 : Gfarm Zabbix plugin
-       templates/               : templates for the plugin
-    README.en			: this file
+   doc/              : documents
+   src/              : source code
+      scripts/       : Gfarm Zabbix plugin
+      templates/     : templates for the plugin
+   README.en			: this file
