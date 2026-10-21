@@ -1,3 +1,44 @@
+Release note for Gfarm Zabbix plugin 7.0
+========================================
+
+[TBD]
+
+New feature
+* support Zabbix 7.0 LTS
+* support zabbix-agent2
+* replace XML templates with YAML templates
+  for compatibility with Zabbix 7.0
+* add installation settings to specify
+  Zabbix agent configuration directories and
+  Gfarm-Zabbix configuration directories
+
+Updated feature
+* installation procedures and supported
+  operating systems are updated to
+  Rocky Linux 9
+* installation layout is reorganized
+  - install-agentd.sh is renamed to
+    install-agent.sh
+  - gfarm_conf.inc is moved to a dedicated
+    Gfarm-Zabbix configuration directory
+* Linux monitoring templates are removed
+  because equivalent monitoring is provided
+  by standard Zabbix templates
+* distributed monitoring configuration is
+  removed from the documentation because it
+  is no longer supported
+
+Documentation update
+* update installation manual for
+  Rocky Linux 9 and Zabbix 7.0
+* update screenshots, menu descriptions,
+  and template configuration procedures
+* remove documentation for the client
+  editor feature
+
+Removed feature
+* remove the client editor feature
+
 Release note for Gfarm Zabbix plugin 4.3
 ========================================
 
