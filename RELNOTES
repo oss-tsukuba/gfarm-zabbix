@@ -21,9 +21,9 @@ Updated feature
     install-agent.sh
   - gfarm_conf.inc is moved to a dedicated
     Gfarm-Zabbix configuration directory
-* Linux monitoring templates are removed
-  because equivalent monitoring is provided
-  by standard Zabbix templates
+* obsolete Template_*_linux_alt templates
+  are removed because equivalent monitoring
+  is provided by standard Zabbix templates
 * distributed monitoring configuration is
   removed from the documentation because it
   is no longer supported
@@ -38,6 +38,18 @@ Documentation update
 
 Removed feature
 * remove the client editor feature
+
+Bug fix
+* fix failover script to correctly detect
+  a running master gfmd on Rocky Linux 9
+  and other environments where ss reports
+  "0.0.0.0:port" instead of "*:port"
+
+* fix failover script to correctly detect
+  failures when updating
+  gfmd.failover.agent.conf and prevent
+  promotion when split brain protection
+  cannot be configured
 
 Release note for Gfarm Zabbix plugin 4.3
 ========================================

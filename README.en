@@ -12,4 +12,4 @@ src/failure_test_scripts.
    src/              : source code
       scripts/       : Gfarm Zabbix plugin
       templates/     : templates for the plugin
-   README.en			: this file
+   README.en         : this file

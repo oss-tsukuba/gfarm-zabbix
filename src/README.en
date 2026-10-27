@@ -4,6 +4,6 @@
       externalscripts/  : scripts to monitor Gfarm
       zabbix_agent.d/   : configuration file for user parameters
    templates/           : templates for the plugin
-   install-agent.sh		: install script for Gfarm Zabbix plugin
+   install-agent.sh     : install script for Gfarm Zabbix plugin
    install.conf         : configuration file for install scripts
    README.en            : this file

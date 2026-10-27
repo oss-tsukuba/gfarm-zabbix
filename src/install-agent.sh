@@ -8,22 +8,101 @@
 # install(1) command.
 INSTALL=install
 
-# Auto-detect the Zabbix agent executable and
-# its user configuration directory if not specified.
-if [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent2" ]; then
-    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agent2.d}
-    : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent2"}
-elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agentd" ]; then
-    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
-    : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agentd"}
-elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" ]; then
-    : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
-    : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent"}
+#
+# The following directories must be explicitly configured.
+# Empty values may cause configuration files or scripts to be
+# installed directly under '/', which is almost certainly
+# unintended.
+#
+for I in \
+    ZABBIX_EXTSCRIPTDIR \
+    ZABBIX_GFARM_CONFDIR \
+    ZABBIX_HOMEDIR
+do
+    eval VALUE=\$$I
+    if [ -z "$VALUE" ]; then
+        echo >&2 "ERROR: $I must not be empty"
+        exit 1
+    fi
+done
+
+#
+# Determine ZABBIX_AGENT_BIN and ZABBIX_AGENT_CONFDIR.
+# If either of them is explicitly specified, derive the
+# other value when possible. Otherwise, auto-detect both.
+#
+if [ -n "$ZABBIX_AGENT_BIN" ]; then
+    if [ ! -x "$ZABBIX_AGENT_BIN" ]; then
+        echo >&2 \
+            "ERROR: ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)" \
+            "is not executable or does not exist"
+        exit 1
+    fi
+
+    case "$(basename "$ZABBIX_AGENT_BIN")" in
+    zabbix_agent2)
+        : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agent2.d}
+        ;;
+    zabbix_agentd)
+        : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
+        ;;
+    *)
+        if [ -z "$ZABBIX_AGENT_CONFDIR" ]; then
+            echo >&2 \
+                "ERROR: Cannot determine the default value of" \
+                " ZABBIX_AGENT_CONFDIR from" \
+                " ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)"
+            echo >&2 \
+                "ERROR: Please set ZABBIX_AGENT_CONFDIR explicitly"
+            exit 1
+        fi
+        ;;
+    esac
+elif [ -n "$ZABBIX_AGENT_CONFDIR" ]; then
+    case "$(basename "$ZABBIX_AGENT_CONFDIR")" in
+    zabbix_agent2.d)
+        : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent2"}
+        ;;
+    zabbix_agentd.d)
+        : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agentd"}
+        ;;
+    *)
+        if [ -z "$ZABBIX_AGENT_BIN" ]; then
+            echo >&2 \
+                "ERROR: Cannot determine the default value of" \
+                " ZABBIX_AGENT_BIN from" \
+                " ZABBIX_AGENT_CONFDIR ($ZABBIX_AGENT_CONFDIR)"
+            echo >&2 \
+                "ERROR: Please set ZABBIX_AGENT_BIN explicitly"
+            exit 1
+        fi
+        ;;
+    esac
+    if [ ! -x "$ZABBIX_AGENT_BIN" ]; then
+        echo >&2 \
+            "ERROR: ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)" \
+            " is not executable or does not exist"
+        exit 1
+    fi
 else
-    echo >&2 \
-        "ERROR: No Zabbix agent executable found under ${ZABBIX_PREFIX}/sbin"
-    echo >&2 "ERROR: check ZABBIX_PREFIX setting in install.conf"
-    exit 1
+    # Auto-detect the Zabbix agent executable and
+    # its user configuration directory if not specified.
+    if [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent2" ]; then
+        : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agent2.d}
+        : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent2"}
+    elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agentd" ]; then
+        : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
+        : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agentd"}
+    elif [ -x "${ZABBIX_PREFIX}/sbin/zabbix_agent" ]; then
+        : ${ZABBIX_AGENT_CONFDIR:=/etc/zabbix/zabbix_agentd.d}
+        : ${ZABBIX_AGENT_BIN:="${ZABBIX_PREFIX}/sbin/zabbix_agent"}
+    else
+        echo >&2 \
+            "ERROR: No Zabbix agent executable found" \
+            " under ${ZABBIX_PREFIX}/sbin"
+        echo >&2 "ERROR: check ZABBIX_PREFIX setting in install.conf"
+        exit 1
+    fi
 fi
 
 # User name of Zabbix.
@@ -85,7 +164,7 @@ for I in \
     SRCFILE=scripts/zabbix_agent.d/$I
     DSTFILE=$ZABBIX_AGENT_CONFDIR/$I
     create_file $SRCFILE
-    $INSTALL -c -m 0755 -o root -g root $SRCFILE $DSTFILE \
+    $INSTALL -c -m 0644 -o root -g root $SRCFILE $DSTFILE \
         || { echo "Failed to install the file: $DSTFILE"; exit 1; }
     echo "Install the file: $DSTFILE"
 done
@@ -168,40 +247,18 @@ then
     fi
 fi
 
-#
-# Delete or notify obsolete files.
-# 
-OBSOLETE_FILES=
-for I in \
-    zbx_chk_dead_gfarm_pgsql.sh \
-    zbx_chk_dead_gfmd.sh \
-    zbx_chk_dead_gfsd.sh \
-    zbx_chk_gfhost_cli.sh \
-    zbx_chk_gfhost_gfsd.sh \
-    zbx_chk_gfmdhost_cli.sh \
-    zbx_chk_gfmdlist_cli.sh \
-    zbx_chk_gfmdtype_gfmd.sh \
-    zbx_chk_gfsched_gfmd.sh \
-    zbx_chk_gfsched_gfsd.sh \
-    zbx_chk_listenport_gfmd.sh \
-    zbx_chk_listenport_gfsd.sh \
-    zbx_chk_mastername_cli.sh \
-    zbx_chk_pgsql.sh \
-    zbx_failover.pl \
-    zbx_gfarm_utils.inc; do
-    [ -f $ZABBIX_EXTSCRIPTDIR/$I ] && rm -f $ZABBIX_EXTSCRIPTDIR/$I
-done
+if [ "$(basename "$ZABBIX_AGENT_BIN")" = "zabbix_agent2" ]; then
+    OLD_AGENTD_CONFDIR=$(dirname "$ZABBIX_AGENT_CONFDIR")/zabbix_agentd.d
 
-for I in \
-    $ZABBIX_EXTSCRIPTDIR/zbx_chk_gfarm.conf \
-    $ZABBIX_AGENT_CONFDIR/userparameter_postgresql.conf \
-    $ZABBIX_AGENT_CONFDIR/userparameter_redundant_gfarm.conf; do
-    if [ -f $I ]; then
-        echo "The following file is not used any longer:"
-        echo "    $I"
-        echo
-    fi
-done
+    for I in \
+        $OLD_AGENTD_CONFDIR/userparameter_gfarm.conf ; do
+        if [ -f "$I" ]; then
+            echo "The following file is not used any longer:"
+            echo "    $I"
+            echo
+        fi
+    done
+fi
 
 #
 # Change mode of $GFARM_SYSLOG_FILE
