@@ -50,8 +50,8 @@ if [ -n "$ZABBIX_AGENT_BIN" ]; then
         if [ -z "$ZABBIX_AGENT_CONFDIR" ]; then
             echo >&2 \
                 "ERROR: Cannot determine the default value of" \
-                " ZABBIX_AGENT_CONFDIR from" \
-                " ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)"
+                "ZABBIX_AGENT_CONFDIR from" \
+                "ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)"
             echo >&2 \
                 "ERROR: Please set ZABBIX_AGENT_CONFDIR explicitly"
             exit 1
@@ -81,7 +81,7 @@ elif [ -n "$ZABBIX_AGENT_CONFDIR" ]; then
     if [ ! -x "$ZABBIX_AGENT_BIN" ]; then
         echo >&2 \
             "ERROR: ZABBIX_AGENT_BIN ($ZABBIX_AGENT_BIN)" \
-            " is not executable or does not exist"
+            "is not executable or does not exist"
         exit 1
     fi
 else
@@ -99,7 +99,7 @@ else
     else
         echo >&2 \
             "ERROR: No Zabbix agent executable found" \
-            " under ${ZABBIX_PREFIX}/sbin"
+            "under ${ZABBIX_PREFIX}/sbin"
         echo >&2 "ERROR: check ZABBIX_PREFIX setting in install.conf"
         exit 1
     fi
