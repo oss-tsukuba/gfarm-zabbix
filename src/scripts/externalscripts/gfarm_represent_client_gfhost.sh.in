@@ -16,7 +16,7 @@
 #
 # Read a configuration file
 #
-CONF_FILE=@ZABBIX_EXTSCRIPTDIR@/gfarm_conf.inc
+CONF_FILE=@ZABBIX_GFARM_CONFDIR@/gfarm_conf.inc
 [ -f $CONF_FILE ] && . $CONF_FILE
 
 #

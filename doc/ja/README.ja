@@ -1,24 +1,18 @@
 [This is written in Japanese, please look at README.en for English version.]
 
-ËÜ¥Õ¥©¥ë¥À¤Ë¤Ï°Ê²¼¤Î¥É¥­¥å¥á¥ó¥È¤¬ÃÖ¤«¤ì¤Æ¤¤¤Ş¤¹¡£
+æœ¬ãƒ•ã‚©ãƒ«ãƒ€ã«ã¯ä»¥ä¸‹ã®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆãŒç½®ã‹ã‚Œã¦ã„ã¾ã™ã€‚
 
-    gfarm_monitoring_item_list.xlsx : Gfarm ´Æ»ë¹àÌÜ°ìÍ÷ (Excel ·Á¼°)
-    gfarm_monitoring_item_list.pdf  : Æ±¾å (PDF ·Á¼°)
+    gfarm_monitoring_item_list.xlsx : Gfarm ç›£è¦–é …ç›®ä¸€è¦§ (Excel å½¢å¼)
+    gfarm_monitoring_item_list.pdf  : åŒä¸Š (PDF å½¢å¼)
 
-    trac_install_manual.doc         : Trac Æ³Æş¡¦ÀßÄê¥Ş¥Ë¥å¥¢¥ë (Word ·Á¼°)
-    trac_install_manual.pdf         : Æ±¾å (PDF ·Á¼°)
+    zabbix_install_manual.docx      : Gfarm Zabbix
+                                        å°å…¥ãƒ»è¨­å®šãƒãƒ‹ãƒ¥ã‚¢ãƒ« (Word å½¢å¼)
+    zabbix_install_manual.pdf       : åŒä¸Š (PDF å½¢å¼)
 
-    trac_management_manual.doc      : Trac ´ÉÍı¡¦ÍøÍÑ¥Ş¥Ë¥å¥¢¥ë (Word ·Á¼°)
-    trac_management_manual.pdf      : Æ±¾å (PDF ·Á¼°)
+    zabbix_management_manual.docx   : Gfarm Zabbix
+                                        ç®¡ç†ãƒ»åˆ©ç”¨ãƒãƒ‹ãƒ¥ã‚¢ãƒ« (Word å½¢å¼)
+    zabbix_management_manual.pdf    : åŒä¸Š (PDF å½¢å¼)
 
-    zabbix_install_manual.docx      : ¾éÄ¹²½¹½À® Gfarm ´Æ»ëµ¡Ç½
-                                     Æ³Æş¡¦ÀßÄê¥Ş¥Ë¥å¥¢¥ë (Word ·Á¼°)
-    zabbix_install_manual.pdf       : Æ±¾å (PDF ·Á¼°)
-
-    zabbix_management_manual.docx   : ¾éÄ¹²½¹½À® Gfarm ´Æ»ëµ¡Ç½
-                                     ´ÉÍı¡¦ÍøÍÑ¥Ş¥Ë¥å¥¢¥ë (Word ·Á¼°)
-    zabbix_management_manual.pdf    : Æ±¾å (PDF ·Á¼°)
-
-    zabbix_troubleshoot_manual.docx : ¾éÄ¹²½¹½À® Gfarm ´Æ»ëµ¡Ç½
-                                      ¾ã³²ÂĞ±ş¥Ş¥Ë¥å¥¢¥ë (Word ·Á¼°)
-    zabbix_troubleshoot_manual.pdf  : Æ±¾å (PDF ·Á¼°)
+    zabbix_troubleshoot_manual.docx : Gfarm Zabbix
+                                        éšœå®³å¯¾å¿œãƒãƒ‹ãƒ¥ã‚¢ãƒ« (Word å½¢å¼)
+    zabbix_troubleshoot_manual.pdf  : åŒä¸Š (PDF å½¢å¼)

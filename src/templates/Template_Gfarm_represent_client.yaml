@@ -1,0 +1,65 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 17ab3f777ba44df68d6171d9ad6ec158
+      template: Template_Gfarm_represent_client
+      name: Template_Gfarm_represent_client
+      groups:
+        - name: Templates
+      items:
+        - uuid: 1213a9c491854d72bc5a4e94a3c27f7d
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.represent_client.gfhost
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          status: DISABLED
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 30d1377e6843497984863f7e68a9adc4
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfhost,,"regexp","^ok$")=0'
+              name: 'Problem of gfsd ({ITEM.LASTVALUE})'
+              status: DISABLED
+              priority: HIGH
+              dependencies:
+                - name: 'Problem of gfmd ({ITEM.LASTVALUE})'
+                  expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost,,"regexp","^ok$")=0'
+        - uuid: 06fefad7763a4679ac755eda7fc074bb
+          name: 'Execution result of gfmdhost command on {HOSTNAME}'
+          key: gfarm.represent_client.gfmdhost
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 41e571fc8db84c779b90db1e105e3b24
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost,,"regexp","^ok$")=0'
+              name: 'Problem of gfmd ({ITEM.LASTVALUE})'
+              priority: HIGH
+        - uuid: 68d3b4df274d4490992350e372c35175
+          name: 'Execution result of gfmdhost -1 command on each gfmd'
+          key: gfarm.represent_client.gfmdhost2
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost -1 command on each gfmd'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 248c45345f894ec98acd992b2196fff8
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost2,,"regexp","^ok$")=0'
+              name: 'Multiple master gfmds ({ITEM.LASTVALUE})'
+              priority: HIGH

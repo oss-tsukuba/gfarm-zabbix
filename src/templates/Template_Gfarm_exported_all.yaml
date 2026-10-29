@@ -1,0 +1,437 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: ca2a3d6010254ebbbe0a1d5576c4cb00
+      template: Template_Gfarm_generic_client
+      name: Template_Gfarm_generic_client
+      groups:
+        - name: Templates
+      items:
+        - uuid: aa9c2689f61f4784ba26fdbcd01d8d46
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.generic_client.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm generic client'
+          triggers:
+            - uuid: 52e0c5b8ca6a4c7fbd978222db112a57
+              expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to gfsd failed ({ITEM.LASTVALUE})'
+              priority: HIGH
+              dependencies:
+                - name: 'Auth request to gfmd failed ({ITEM.LASTVALUE})'
+                  expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfmdhost,,"regexp","^ok$")=0'
+        - uuid: f577ce6d4ff646339ef826801b28efd0
+          name: 'Execution result of gfmdhost command on {HOSTNAME}'
+          key: gfarm.generic_client.gfmdhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm generic client'
+          triggers:
+            - uuid: 15f3e4da6c1c4e6aa49479f5d0472263
+              expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfmdhost,,"regexp","^ok$")=0'
+              name: 'Auth request to gfmd failed ({ITEM.LASTVALUE})'
+              priority: HIGH
+    - uuid: 2492124e682d4e2f928416665d059a1d
+      template: Template_Gfarm_gfmd
+      name: Template_Gfarm_gfmd
+      groups:
+        - name: Templates
+      items:
+        - uuid: 6dc4e0b1d0d740d297565ea76099bc21
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.gfmd.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: 8c34dedce7274a288604cfe521a53e88
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to master gfmd failed'
+              priority: AVERAGE
+        - uuid: a9d9889246604f78b7961afa2dca8467
+          name: 'PostgreSQL server status'
+          key: gfarm.gfmd.postgresql
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'PostgreSQL server status'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: e0fb82e2b9594a4ab2baf6bba6029147
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.postgresql,,"regexp","^ok$")=0'
+              name: 'PostgreSQL server access is timed out'
+              priority: AVERAGE
+        - uuid: c48cc3241a2444c99a904b4e0cd3b35c
+          name: 'PostgreSQL server running'
+          key: gfarm.gfmd.postgresql.alive
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'PostgreSQL server running'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: f3fa925a15224427acbb6d15ae490f6c
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.postgresql.alive,,"regexp","^ok$")=0'
+              name: 'PostgreSQL server is not running'
+              priority: HIGH
+        - uuid: 6b621a1046444929937afae52c78d7cb
+          name: 'Error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: d617e67796984b80bf4f884ef6d6a242
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","\\[1003762\\]"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'gfmd checksum error in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: a48d977bd6dc43ceb1f2faba5a985649
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","err"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfmd error message in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: AVERAGE
+        - uuid: 9f330985a28a4a3a8bef88c5ba743259
+          name: 'Warning message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Warning message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: b3da3a3d63dc4ea88fb2f1fc2c795c94
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8],,"regexp","warning"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfmd warning message in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: WARNING
+      macros:
+        - macro: '{$GFMD_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MULTIPLE_EVENTS_TIMEOUT}'
+          value: '15'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'
+    - uuid: 8963ad0da58e4d8ea044d092bce4a1ee
+      template: Template_Gfarm_gfsd
+      name: Template_Gfarm_gfsd
+      groups:
+        - name: Templates
+      items:
+        - uuid: 1ac117a5e96346e6a8a5cacc8b5fa6e5
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.gfsd.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: cd52d588c35945359673c633f9d05f9d
+              expression: 'find(/Template_Gfarm_gfsd/gfarm.gfsd.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to other gfsd failed ({ITEM.LASTVALUE})'
+              priority: AVERAGE
+        - uuid: 5815e1414acf48f992cb86dd22a88e52
+          name: 'Execution result of gfsched command on {HOSTNAME}'
+          key: 'gfarm.gfsd.gfsched[{$GFSD_HOSTNAMES}]'
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfsched command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: 94e009a580184f36b11addd24c6c5f59
+              expression: 'find(/Template_Gfarm_gfsd/gfarm.gfsd.gfsched[{$GFSD_HOSTNAMES}],,"regexp","^ok$")=0'
+              name: 'Problem of gfsd ({ITEM.LASTVALUE})'
+              priority: HIGH
+        - uuid: 7533998538f0443486b4c5acec993f20
+          name: 'Error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: f836e22278f442d492d5d9f72c36c10a
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","err"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfsd error message in {$GFSD_LOGFILE} on {HOSTNAME}'
+              priority: AVERAGE
+            - uuid: 386af350ee964321937936747636a42b
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","\\[1004213\\]"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'gfsd I/O error on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: c0cd88330b0642509c83f1fc677dd047
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","write_verify.*checksum mismatch.*should be"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'write_verify checksum error on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: 5589268ca9244fb49afcf52f7eec64f7
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","write_verify: gfsd crashed previously"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'write_verify state was not saved on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+        - uuid: 978eca843eda4c8f9673f85f40e497d7
+          name: 'Warning message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Warning message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: 576bbf3b108d4e4c8aa92dfd1c259008
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8],,"regexp","warning"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfsd warning message in {$GFSD_LOGFILE} on {HOSTNAME}'
+              priority: WARNING
+      macros:
+        - macro: '{$GFSD_HOSTNAMES}'
+          value: '-'
+        - macro: '{$GFSD_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MULTIPLE_EVENTS_TIMEOUT}'
+          value: '15'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'
+    - uuid: ea527e950fa044a1b09ebb1715a8652b
+      template: Template_Gfarm_linux
+      name: Template_Gfarm_linux
+      groups:
+        - name: Templates
+      items:
+        - uuid: ad5a616125354d3d9aaf82e17840928d
+          name: 'Available memory size'
+          key: 'gfarm.host.memory.size[available]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Available memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 004c3155d1fb4d4fa9e7be7a34ab992c
+          name: 'Total memory size'
+          key: 'gfarm.host.memory.size[total]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Total memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: b605be46284344dd87cf8af1dd835c03
+          name: 'kernel bio too big message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'kernel bio too big message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: 41dbe9716c5b4112a8fc6f73d73a1c6d
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'kernel bio too big message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: 71d3d00b548844ba904988c68e4a5079
+          name: 'I/O error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'I/O error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: 994f334ce2114c48916866345f32453b
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'I/O error message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: 4f2cb156bd144dc28931f2f04fde56ca
+          name: 'Internal error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Internal error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: cd4fe5d8452b4cc997aff02133a0bd30
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'Internal error message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: c646fde535b749428836e53bbecba9e4
+          name: 'Host local time'
+          key: 'system.localtime[utc]'
+          delay: '300'
+          history: 90d
+          description: 'Host local time'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: d251d9f1cac6414b96572cb0422ac07a
+              expression: 'fuzzytime(/Template_Gfarm_linux/system.localtime[utc],{$TIME_DIFF_THRESHOLD})=0'
+              name: 'Time drift between Zabbix server and {HOSTNAME}'
+              priority: WARNING
+        - uuid: 95427a71ea8a4167a7176f193a82faa6
+          name: 'Memory size of kernel buffers'
+          key: 'vm.memory.size[buffers]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Memory size of kernel buffers'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 461076f43ae6442cbf6f7cb9fdd1834d
+          name: 'Cached memory size'
+          key: 'vm.memory.size[cached]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Cached memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 1296d8e0babe431885e562a038bc2b69
+          name: 'Free memory size'
+          key: 'vm.memory.size[free]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Free memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+      macros:
+        - macro: '{$KERNEL_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MEM_FREE_THRESHOLD}'
+          value: '20'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'
+        - macro: '{$TIME_DIFF_THRESHOLD}'
+          value: '30'
+    - uuid: 17ab3f777ba44df68d6171d9ad6ec158
+      template: Template_Gfarm_represent_client
+      name: Template_Gfarm_represent_client
+      groups:
+        - name: Templates
+      items:
+        - uuid: 1213a9c491854d72bc5a4e94a3c27f7d
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.represent_client.gfhost
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          status: DISABLED
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 30d1377e6843497984863f7e68a9adc4
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfhost,,"regexp","^ok$")=0'
+              name: 'Problem of gfsd ({ITEM.LASTVALUE})'
+              status: DISABLED
+              priority: HIGH
+              dependencies:
+                - name: 'Problem of gfmd ({ITEM.LASTVALUE})'
+                  expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost,,"regexp","^ok$")=0'
+        - uuid: 06fefad7763a4679ac755eda7fc074bb
+          name: 'Execution result of gfmdhost command on {HOSTNAME}'
+          key: gfarm.represent_client.gfmdhost
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 41e571fc8db84c779b90db1e105e3b24
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost,,"regexp","^ok$")=0'
+              name: 'Problem of gfmd ({ITEM.LASTVALUE})'
+              priority: HIGH
+        - uuid: 68d3b4df274d4490992350e372c35175
+          name: 'Execution result of gfmdhost -1 command on each gfmd'
+          key: gfarm.represent_client.gfmdhost2
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost -1 command on each gfmd'
+          tags:
+            - tag: Application
+              value: 'Gfarm representative client'
+          triggers:
+            - uuid: 248c45345f894ec98acd992b2196fff8
+              expression: 'find(/Template_Gfarm_represent_client/gfarm.represent_client.gfmdhost2,,"regexp","^ok$")=0'
+              name: 'Multiple master gfmds ({ITEM.LASTVALUE})'
+              priority: HIGH
+  triggers:
+    - uuid: 5583bf8e9fa34ae58157090a340b50f3
+      expression: 'last(/Template_Gfarm_linux/gfarm.host.memory.size[available])/last(/Template_Gfarm_linux/gfarm.host.memory.size[total])*100.0<{$MEM_FREE_THRESHOLD}'
+      name: 'Low free memory on server {HOSTNAME}'
+      priority: AVERAGE

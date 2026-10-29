@@ -1,0 +1,106 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 2492124e682d4e2f928416665d059a1d
+      template: Template_Gfarm_gfmd
+      name: Template_Gfarm_gfmd
+      groups:
+        - name: Templates
+      items:
+        - uuid: 6dc4e0b1d0d740d297565ea76099bc21
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.gfmd.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: 8c34dedce7274a288604cfe521a53e88
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to master gfmd failed'
+              priority: AVERAGE
+        - uuid: a9d9889246604f78b7961afa2dca8467
+          name: 'PostgreSQL server status'
+          key: gfarm.gfmd.postgresql
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'PostgreSQL server status'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: e0fb82e2b9594a4ab2baf6bba6029147
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.postgresql,,"regexp","^ok$")=0'
+              name: 'PostgreSQL server access is timed out'
+              priority: AVERAGE
+        - uuid: c48cc3241a2444c99a904b4e0cd3b35c
+          name: 'PostgreSQL server running'
+          key: gfarm.gfmd.postgresql.alive
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'PostgreSQL server running'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: f3fa925a15224427acbb6d15ae490f6c
+              expression: 'find(/Template_Gfarm_gfmd/gfarm.gfmd.postgresql.alive,,"regexp","^ok$")=0'
+              name: 'PostgreSQL server is not running'
+              priority: HIGH
+        - uuid: 6b621a1046444929937afae52c78d7cb
+          name: 'Error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: d617e67796984b80bf4f884ef6d6a242
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","\\[1003762\\]"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'gfmd checksum error in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: a48d977bd6dc43ceb1f2faba5a985649
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","err"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<err>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfmd error message in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: AVERAGE
+        - uuid: 9f330985a28a4a3a8bef88c5ba743259
+          name: 'Warning message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Warning message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfmd'
+          triggers:
+            - uuid: b3da3a3d63dc4ea88fb2f1fc2c795c94
+              expression: '((find(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8],,"regexp","warning"))<>0) and ((nodata(/Template_Gfarm_gfmd/log[{$GFMD_LOGFILE},"\sgfmd\[[0-9]+\]:\s+<warning>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfmd warning message in {$GFMD_LOGFILE} on {HOSTNAME}'
+              priority: WARNING
+      macros:
+        - macro: '{$GFMD_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MULTIPLE_EVENTS_TIMEOUT}'
+          value: '15'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'

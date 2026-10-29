@@ -1,0 +1,102 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 8963ad0da58e4d8ea044d092bce4a1ee
+      template: Template_Gfarm_gfsd
+      name: Template_Gfarm_gfsd
+      groups:
+        - name: Templates
+      items:
+        - uuid: 1ac117a5e96346e6a8a5cacc8b5fa6e5
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.gfsd.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: cd52d588c35945359673c633f9d05f9d
+              expression: 'find(/Template_Gfarm_gfsd/gfarm.gfsd.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to other gfsd failed ({ITEM.LASTVALUE})'
+              priority: AVERAGE
+        - uuid: 5815e1414acf48f992cb86dd22a88e52
+          name: 'Execution result of gfsched command on {HOSTNAME}'
+          key: 'gfarm.gfsd.gfsched[{$GFSD_HOSTNAMES}]'
+          delay: '300'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfsched command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: 94e009a580184f36b11addd24c6c5f59
+              expression: 'find(/Template_Gfarm_gfsd/gfarm.gfsd.gfsched[{$GFSD_HOSTNAMES}],,"regexp","^ok$")=0'
+              name: 'Problem of gfsd ({ITEM.LASTVALUE})'
+              priority: HIGH
+        - uuid: 7533998538f0443486b4c5acec993f20
+          name: 'Error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: f836e22278f442d492d5d9f72c36c10a
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","err"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfsd error message in {$GFSD_LOGFILE} on {HOSTNAME}'
+              priority: AVERAGE
+            - uuid: 386af350ee964321937936747636a42b
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","\\[1004213\\]"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'gfsd I/O error on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: c0cd88330b0642509c83f1fc677dd047
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","write_verify.*checksum mismatch.*should be"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'write_verify checksum error on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+            - uuid: 5589268ca9244fb49afcf52f7eec64f7
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],,"regexp","write_verify: gfsd crashed previously"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<err>",UTF-8],{$MULTIPLE_EVENTS_TIMEOUT}))=0)'
+              name: 'write_verify state was not saved on {HOSTNAME}'
+              priority: HIGH
+              type: MULTIPLE
+        - uuid: 978eca843eda4c8f9673f85f40e497d7
+          name: 'Warning message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Warning message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm gfsd'
+          triggers:
+            - uuid: 576bbf3b108d4e4c8aa92dfd1c259008
+              expression: '((find(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8],,"regexp","warning"))<>0) and ((nodata(/Template_Gfarm_gfsd/log[{$GFSD_LOGFILE},"\sgfsd\[[0-9]+\]:\s+<warning>",UTF-8],{$NODATA_TIMEOUT}))=0)'
+              name: 'gfsd warning message in {$GFSD_LOGFILE} on {HOSTNAME}'
+              priority: WARNING
+      macros:
+        - macro: '{$GFSD_HOSTNAMES}'
+          value: '-'
+        - macro: '{$GFSD_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MULTIPLE_EVENTS_TIMEOUT}'
+          value: '15'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'

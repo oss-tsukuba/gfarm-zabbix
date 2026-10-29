@@ -1,0 +1,47 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: ca2a3d6010254ebbbe0a1d5576c4cb00
+      template: Template_Gfarm_generic_client
+      name: Template_Gfarm_generic_client
+      groups:
+        - name: Templates
+      items:
+        - uuid: aa9c2689f61f4784ba26fdbcd01d8d46
+          name: 'Execution result of gfhost command on {HOSTNAME}'
+          key: gfarm.generic_client.gfhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm generic client'
+          triggers:
+            - uuid: 52e0c5b8ca6a4c7fbd978222db112a57
+              expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfhost,,"regexp","^ok$")=0'
+              name: 'Auth request to gfsd failed ({ITEM.LASTVALUE})'
+              priority: HIGH
+              dependencies:
+                - name: 'Auth request to gfmd failed ({ITEM.LASTVALUE})'
+                  expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfmdhost,,"regexp","^ok$")=0'
+        - uuid: f577ce6d4ff646339ef826801b28efd0
+          name: 'Execution result of gfmdhost command on {HOSTNAME}'
+          key: gfarm.generic_client.gfmdhost
+          delay: '3600'
+          history: 90d
+          value_type: TEXT
+          trends: '0'
+          description: 'Execution result of gfmdhost command on {HOSTNAME}'
+          tags:
+            - tag: Application
+              value: 'Gfarm generic client'
+          triggers:
+            - uuid: 15f3e4da6c1c4e6aa49479f5d0472263
+              expression: 'find(/Template_Gfarm_generic_client/gfarm.generic_client.gfmdhost,,"regexp","^ok$")=0'
+              name: 'Auth request to gfmd failed ({ITEM.LASTVALUE})'
+              priority: HIGH

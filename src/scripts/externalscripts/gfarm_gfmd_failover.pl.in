@@ -521,6 +521,7 @@ sub update_gfmd_failover_agent_conf(%%$$$) {
 
     log_notice('replace gfmd.failover.agent.conf on ID:%s to "%s": %d',
 	       $id, $config, $result);
+    return $result;
 }
 
 #

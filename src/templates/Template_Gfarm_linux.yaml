@@ -1,0 +1,141 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: ea527e950fa044a1b09ebb1715a8652b
+      template: Template_Gfarm_linux
+      name: Template_Gfarm_linux
+      groups:
+        - name: Templates
+      items:
+        - uuid: ad5a616125354d3d9aaf82e17840928d
+          name: 'Available memory size'
+          key: 'gfarm.host.memory.size[available]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Available memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 004c3155d1fb4d4fa9e7be7a34ab992c
+          name: 'Total memory size'
+          key: 'gfarm.host.memory.size[total]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Total memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: b605be46284344dd87cf8af1dd835c03
+          name: 'kernel bio too big message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'kernel bio too big message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: 41dbe9716c5b4112a8fc6f73d73a1c6d
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*bio\stoo\sbig\sdevice",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'kernel bio too big message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: 71d3d00b548844ba904988c68e4a5079
+          name: 'I/O error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'I/O error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: 994f334ce2114c48916866345f32453b
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*I/O\serror",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'I/O error message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: 4f2cb156bd144dc28931f2f04fde56ca
+          name: 'Internal error message in log file $1'
+          type: ZABBIX_ACTIVE
+          key: 'log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8]'
+          delay: '600'
+          history: 30d
+          value_type: LOG
+          trends: '0'
+          description: 'Internal error message in log file $1'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: cd4fe5d8452b4cc997aff02133a0bd30
+              expression: 'find(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8],,"regexp","kernel")<>0 and nodata(/Template_Gfarm_linux/log[{$KERNEL_LOGFILE},"kernel:\s.*[Ii]nternal\s[Ee]rror",UTF-8],{$NODATA_TIMEOUT})=0'
+              name: 'Internal error message in log file {$KERNEL_LOGFILE}'
+              priority: HIGH
+        - uuid: c646fde535b749428836e53bbecba9e4
+          name: 'Host local time'
+          key: 'system.localtime[utc]'
+          delay: '300'
+          history: 90d
+          description: 'Host local time'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+          triggers:
+            - uuid: d251d9f1cac6414b96572cb0422ac07a
+              expression: 'fuzzytime(/Template_Gfarm_linux/system.localtime[utc],{$TIME_DIFF_THRESHOLD})=0'
+              name: 'Time drift between Zabbix server and {HOSTNAME}'
+              priority: WARNING
+        - uuid: 95427a71ea8a4167a7176f193a82faa6
+          name: 'Memory size of kernel buffers'
+          key: 'vm.memory.size[buffers]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Memory size of kernel buffers'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 461076f43ae6442cbf6f7cb9fdd1834d
+          name: 'Cached memory size'
+          key: 'vm.memory.size[cached]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Cached memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+        - uuid: 1296d8e0babe431885e562a038bc2b69
+          name: 'Free memory size'
+          key: 'vm.memory.size[free]'
+          delay: '300'
+          history: 90d
+          units: B
+          description: 'Free memory size'
+          tags:
+            - tag: Application
+              value: 'Gfarm host'
+      macros:
+        - macro: '{$KERNEL_LOGFILE}'
+          value: /var/log/messages
+        - macro: '{$MEM_FREE_THRESHOLD}'
+          value: '20'
+        - macro: '{$NODATA_TIMEOUT}'
+          value: '10800'
+        - macro: '{$TIME_DIFF_THRESHOLD}'
+          value: '30'
+  triggers:
+    - uuid: 5583bf8e9fa34ae58157090a340b50f3
+      expression: 'last(/Template_Gfarm_linux/gfarm.host.memory.size[available])/last(/Template_Gfarm_linux/gfarm.host.memory.size[total])*100.0<{$MEM_FREE_THRESHOLD}'
+      name: 'Low free memory on server {HOSTNAME}'
+      priority: AVERAGE
